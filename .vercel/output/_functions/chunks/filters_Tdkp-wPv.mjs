@@ -1,8 +1,8 @@
 import { c as createComponent } from './astro-component_Dpczm9S0.mjs';
 import { ak as createRenderInstruction, aX as maybeRenderHead, bm as unescapeHTML, bb as renderTemplate, a5 as addAttribute, b7 as renderHead, b8 as renderSlot } from './params-and-props_BMjh1TyE.mjs';
-import { r as renderComponent } from './entrypoint_DiP58Xrh.mjs';
+import { r as renderComponent } from './entrypoint_DgJ-wcCe.mjs';
 /* empty css                 */
-import { $ as $$Image } from './_astro_assets_BT2NxbJF.mjs';
+import { $ as $$Image } from './_astro_assets_M_CJPWPp.mjs';
 import { s as supabase } from './supabase_Du3HrT-j.mjs';
 
 async function renderScript(result, id) {

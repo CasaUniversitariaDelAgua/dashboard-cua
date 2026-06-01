@@ -1,8 +1,8 @@
 import { c as createComponent } from './astro-component_Dpczm9S0.mjs';
 import { bb as renderTemplate, aX as maybeRenderHead } from './params-and-props_BMjh1TyE.mjs';
-import { r as renderComponent } from './entrypoint_DiP58Xrh.mjs';
-import { c as getFilters, f as getTotalVisitantes, i as getVentasPorDia, b as $$Layout, $ as $$FilterBar } from './filters_pp6TZWQd.mjs';
-import { $ as $$MetricCard } from './MetricCard_CL07l78T.mjs';
+import { r as renderComponent } from './entrypoint_DgJ-wcCe.mjs';
+import { c as getFilters, f as getTotalVisitantes, i as getVentasPorDia, b as $$Layout, $ as $$FilterBar } from './filters_Tdkp-wPv.mjs';
+import { $ as $$MetricCard } from './MetricCard_D6HXnTUb.mjs';
 
 const $$Visitantes = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$props, $$slots);

@@ -1,7 +1,7 @@
 import { c as createComponent } from './astro-component_Dpczm9S0.mjs';
 import { bb as renderTemplate, aX as maybeRenderHead } from './params-and-props_BMjh1TyE.mjs';
-import { r as renderComponent } from './entrypoint_DiP58Xrh.mjs';
-import { c as getFilters, e as getSouvenirsMasVendidos, b as $$Layout, $ as $$FilterBar } from './filters_pp6TZWQd.mjs';
+import { r as renderComponent } from './entrypoint_DgJ-wcCe.mjs';
+import { c as getFilters, e as getSouvenirsMasVendidos, b as $$Layout, $ as $$FilterBar } from './filters_Tdkp-wPv.mjs';
 
 const $$Souvenirs = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$props, $$slots);

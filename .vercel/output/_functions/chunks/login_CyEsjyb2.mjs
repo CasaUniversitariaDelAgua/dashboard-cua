@@ -1,7 +1,7 @@
 import { c as createComponent } from './astro-component_Dpczm9S0.mjs';
 import { b7 as renderHead, bb as renderTemplate } from './params-and-props_BMjh1TyE.mjs';
 /* empty css                 */
-import { l as loginWithPin, s as setSessionCookie } from './auth_Bcuc-ixI.mjs';
+import { l as loginWithPin } from './auth_CTftPBgM.mjs';
 
 const $$Login = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$props, $$slots);
@@ -12,9 +12,15 @@ const $$Login = createComponent(async ($$result, $$props, $$slots) => {
     const formData = await Astro2.request.formData();
     const pin = formData.get("pin") ?? "";
     const { user, error: loginError } = await loginWithPin(pin);
+    console.log("Login attempt result:", { user, loginError });
     if (user) {
-      const cookie = setSessionCookie(user);
-      Astro2.response.headers.append("Set-Cookie", cookie);
+      console.log("Login successful, setting cookie via Astro.cookies");
+      Astro2.cookies.set("dashboard-session", JSON.stringify(user), {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 28800
+      });
       return Astro2.redirect(redirectTo);
     }
     return Astro2.redirect(`/login?error=${encodeURIComponent(loginError ?? "Error desconocido")}&redirect=${encodeURIComponent(redirectTo)}`);

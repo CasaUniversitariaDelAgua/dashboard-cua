@@ -1,15 +1,15 @@
 import { c as createComponent } from './astro-component_Dpczm9S0.mjs';
 import { aX as maybeRenderHead, bb as renderTemplate, a5 as addAttribute } from './params-and-props_BMjh1TyE.mjs';
-import { r as renderComponent } from './entrypoint_DiP58Xrh.mjs';
-import { r as renderScript, c as getFilters, d as getResumenGeneral, i as getVentasPorDia, b as $$Layout, $ as $$FilterBar } from './filters_pp6TZWQd.mjs';
-import { $ as $$MetricCard } from './MetricCard_CL07l78T.mjs';
+import { r as renderComponent } from './entrypoint_DgJ-wcCe.mjs';
+import { r as renderScript, c as getFilters, d as getResumenGeneral, i as getVentasPorDia, b as $$Layout, $ as $$FilterBar } from './filters_Tdkp-wPv.mjs';
+import { $ as $$MetricCard } from './MetricCard_D6HXnTUb.mjs';
 
 const $$SalesChart = createComponent(($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$props, $$slots);
   Astro2.self = $$SalesChart;
   const { data, title } = Astro2.props;
   const chartId = "sales-chart-" + Math.random().toString(36).slice(2, 8);
-  return renderTemplate`${maybeRenderHead()}<div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm"> ${title && renderTemplate`<h3 class="mb-4 text-lg font-bold text-on-surface">${title}</h3>`} <canvas${addAttribute(chartId, "id")} class="max-h-80 w-full"></canvas> </div> ${renderScript($$result, "C:/Users/Manue/Documents/Developer/dashboard-cua/src/components/SalesChart.astro?astro&type=script&index=0&lang.ts")}`;
+  return renderTemplate`${maybeRenderHead()}<div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm"> ${title && renderTemplate`<h3 class="mb-4 text-lg font-bold text-on-surface">${title}</h3>`} <canvas${addAttribute(chartId, "id")}${addAttribute(JSON.stringify(data), "data-chart-data")} class="sales-chart max-h-80 w-full"></canvas> </div> ${renderScript($$result, "C:/Users/Manue/Documents/Developer/dashboard-cua/src/components/SalesChart.astro?astro&type=script&index=0&lang.ts")}`;
 }, "C:/Users/Manue/Documents/Developer/dashboard-cua/src/components/SalesChart.astro", void 0);
 
 const $$Index = createComponent(async ($$result, $$props, $$slots) => {

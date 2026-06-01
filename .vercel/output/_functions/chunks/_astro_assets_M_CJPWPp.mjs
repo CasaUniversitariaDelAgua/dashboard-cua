@@ -1,5 +1,5 @@
 import { d as AstroError, z as NoImageMetadata, F as FailedToFetchRemoteImageDimensions, U as RemoteImageNotAllowed, b2 as removeQueryString, aV as joinPaths, h as ExpectedImage, aP as isRemotePath, L as LocalImageUsedWrongly, v as MissingImageDimension, a4 as UnsupportedImageFormat, o as IncompatibleDescriptorOptions, a3 as UnsupportedImageConversion, q as InvalidImageService, i as ExpectedImageOptions, j as ExpectedNotESMImage, n as ImageMissingAlt, aX as maybeRenderHead, a5 as addAttribute, bb as renderTemplate, k as FontFamilyNotFound, bm as unescapeHTML, u as MissingGetFontFileRequestUrl } from './params-and-props_BMjh1TyE.mjs';
-import { t as typeHandlers, a as types, i as isRemoteAllowed, s as spreadAttributes } from './entrypoint_DiP58Xrh.mjs';
+import { t as typeHandlers, a as types, i as isRemoteAllowed, s as spreadAttributes } from './entrypoint_DgJ-wcCe.mjs';
 import { c as createComponent } from './astro-component_Dpczm9S0.mjs';
 
 function isESMImportedImage(src) {
@@ -615,7 +615,7 @@ async function getConfiguredImageService() {
   if (!globalThis?.astroAsset?.imageService) {
     const { default: service } = await import(
       // @ts-expect-error
-      './sharp_DMQMgP8P.mjs'
+      './sharp_DSOwb-lz.mjs'
     ).catch((e) => {
       const error = new AstroError(InvalidImageService);
       error.cause = e;
@@ -832,7 +832,7 @@ const $$Image = createComponent(async ($$result, $$props, $$slots) => {
   }
   const { class: className, ...attributes } = { ...additionalAttributes, ...image.attributes };
   return renderTemplate`${maybeRenderHead()}<img${addAttribute(image.src, "src")}${spreadAttributes(attributes)}${addAttribute(className, "class")}>`;
-}, "C:/Users/Manue/Documents/Developer/dashboard-cua/node_modules/.pnpm/astro@6.4.2_@vercel+functio_c906be13a5370156bf3ed250e2f65353/node_modules/astro/components/Image.astro", void 0);
+}, "C:/Users/Manue/Documents/Developer/dashboard-cua/node_modules/.pnpm/astro@6.4.2_@types+node@25._41ed2bb87fad727e7c4a10fb1ba8b57f/node_modules/astro/components/Image.astro", void 0);
 
 const mimes = {
   "3g2": "video/3gpp2",
@@ -1356,7 +1356,7 @@ const $$Picture = createComponent(async ($$result, $$props, $$slots) => {
     const srcsetAttribute = props.densities || !props.densities && !props.widths && !useResponsive ? `${image.src}${image.srcSet.values.length > 0 ? ", " + image.srcSet.attribute : ""}` : image.srcSet.attribute;
     return renderTemplate`<source${addAttribute(srcsetAttribute, "srcset")}${addAttribute(lookup(image.options.format ?? image.src) ?? `image/${image.options.format}`, "type")}${spreadAttributes(sourceAdditionalAttributes)}>`;
   })}  <img${addAttribute(fallbackImage.src, "src")}${spreadAttributes(attributes)}${addAttribute(className, "class")}> </picture>`;
-}, "C:/Users/Manue/Documents/Developer/dashboard-cua/node_modules/.pnpm/astro@6.4.2_@vercel+functio_c906be13a5370156bf3ed250e2f65353/node_modules/astro/components/Picture.astro", void 0);
+}, "C:/Users/Manue/Documents/Developer/dashboard-cua/node_modules/.pnpm/astro@6.4.2_@types+node@25._41ed2bb87fad727e7c4a10fb1ba8b57f/node_modules/astro/components/Picture.astro", void 0);
 
 const componentDataByCssVariable = new Map([]);
 
@@ -1408,7 +1408,7 @@ const $$Font = createComponent(($$result, $$props, $$slots) => {
   }
   const filteredPreloadData = filterPreloads(data.preloads, preload);
   return renderTemplate`<style>${unescapeHTML(data.css)}</style>${filteredPreloadData?.map(({ url, type }) => renderTemplate`<link rel="preload"${addAttribute(url, "href")} as="font"${addAttribute(`font/${type}`, "type")} crossorigin>`)}`;
-}, "C:/Users/Manue/Documents/Developer/dashboard-cua/node_modules/.pnpm/astro@6.4.2_@vercel+functio_c906be13a5370156bf3ed250e2f65353/node_modules/astro/components/Font.astro", void 0);
+}, "C:/Users/Manue/Documents/Developer/dashboard-cua/node_modules/.pnpm/astro@6.4.2_@types+node@25._41ed2bb87fad727e7c4a10fb1ba8b57f/node_modules/astro/components/Font.astro", void 0);
 
 class SsrRuntimeFontFileUrlResolver {
   #urls;

@@ -1,12 +1,10 @@
 import { c as createComponent } from './astro-component_Dpczm9S0.mjs';
 import './params-and-props_BMjh1TyE.mjs';
-import { c as clearSessionCookie } from './auth_Bcuc-ixI.mjs';
 
 const $$Logout = createComponent(($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$props, $$slots);
   Astro2.self = $$Logout;
-  const cookie = clearSessionCookie();
-  Astro2.response.headers.append("Set-Cookie", cookie);
+  Astro2.cookies.delete("dashboard-session", { path: "/" });
   return Astro2.redirect("/login");
 }, "C:/Users/Manue/Documents/Developer/dashboard-cua/src/pages/logout.astro", void 0);
 

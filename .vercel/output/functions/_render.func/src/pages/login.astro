@@ -10,10 +10,16 @@ if (Astro.request.method === 'POST') {
   const pin = (formData.get('pin') as string) ?? '';
 
   const { user, error: loginError } = await loginWithPin(pin);
+  console.log('Login attempt result:', { user, loginError });
 
   if (user) {
-    const cookie = setSessionCookie(user);
-    Astro.response.headers.append('Set-Cookie', cookie);
+    console.log('Login successful, setting cookie via Astro.cookies');
+    Astro.cookies.set('dashboard-session', JSON.stringify(user), {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 28800
+    });
     return Astro.redirect(redirectTo);
   }
 
