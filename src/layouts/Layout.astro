@@ -12,9 +12,10 @@ import logo from "../assets/icono-favicon.webp";
 export interface Props {
   title: string;
   currentPath: string;
+  user?: { nombre: string };
 }
 
-const { title, currentPath } = Astro.props;
+const { title, currentPath, user } = Astro.props;
 
 const navItems = [
   { href: "/", label: "Resumen General", icon: "chart" },
@@ -75,7 +76,7 @@ const navItems = [
         style="background: rgba(0,0,0,0.70); backdrop-filter: blur(12px); border-right: 1px solid rgba(255,255,255,0.10);"
       >
         <div class="flex h-16 items-center gap-3 px-4 border-b border-white/10">
-          <Image src={logo} alt="Logo CUA" width={32} height={32} />
+          <Image src={logo} alt="Logo CUA" width={28} height={28} />
           <span class="text-sm font-semibold text-on-shell">Dashboard CUA</span>
         </div>
         <nav class="flex flex-col gap-1 p-3">
@@ -118,11 +119,13 @@ const navItems = [
             <Icon name="menu" size={20} />
           </button>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-white/70"
-              >CUA Dashboard</span
-            >
+            <span class="text-sm font-semibold text-white/70">CUA Dashboard</span>
             <span class="text-xs text-white/40">/</span>
             <span class="text-sm font-semibold text-white">{title}</span>
+          </div>
+          <div class="ml-auto flex items-center gap-3">
+            {user && <span class="text-xs font-medium text-white/60">{user.nombre}</span>}
+            <a href="/logout" class="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:bg-white/20 hover:text-white">Salir</a>
           </div>
         </header>
 

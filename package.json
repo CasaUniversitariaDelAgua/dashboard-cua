@@ -14,10 +14,14 @@
   },
   "dependencies": {
     "@astrojs/node": "^10.1.2",
+    "@astrojs/vercel": "^10.0.8",
     "@supabase/supabase-js": "^2.106.2",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.2",
     "chart.js": "^4.5.1",
     "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1"
   }
 }

@@ -1,0 +1,7 @@
+---
+import { clearSessionCookie } from '../lib/auth';
+
+const cookie = clearSessionCookie();
+Astro.response.headers.append('Set-Cookie', cookie);
+return Astro.redirect('/login');
+---
