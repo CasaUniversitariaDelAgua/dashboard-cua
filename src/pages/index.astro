@@ -1,17 +1,128 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import MetricCard from '../components/MetricCard.astro';
+import SalesChart from '../components/SalesChart.astro';
+import FilterBar from '../components/FilterBar.astro';
+import { getResumenGeneral, getVentasPorDia } from '../lib/queries';
+import { getFilters } from '../lib/filters';
 
+const filters = getFilters(Astro.url);
+const resumen = await getResumenGeneral({ desde: filters.desde, hasta: filters.hasta });
+
+const hoy = new Date();
+const mes = filters.mes ? parseInt(filters.mes) : hoy.getMonth() + 1;
+const año = filters.año ? parseInt(filters.año) : hoy.getFullYear();
+const ventasPorDia = await getVentasPorDia({
+  desde: filters.desde,
+  hasta: filters.hasta,
+  mes, año,
+});
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Resumen General" currentPath="/">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold text-on-surface">Resumen General</h1>
+      <p class="text-sm text-on-surface-muted">Panel principal del dashboard</p>
+    </div>
+
+    <form method="GET" action="/">
+      <FilterBar
+        basePath="/"
+        filters={[
+          { label: 'Desde', name: 'desde', type: 'date', value: filters.desde },
+          { label: 'Hasta', name: 'hasta', type: 'date', value: filters.hasta },
+          { label: 'Mes', name: 'mes', type: 'select', value: filters.mes ?? String(mes),
+            options: Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: new Date(2024, i).toLocaleString('es-MX', { month: 'long' }) })) },
+          { label: 'Año', name: 'año', type: 'select', value: filters.año ?? String(año),
+            options: [año - 1, año, año + 1].map(a => ({ value: String(a), label: String(a) })) },
+        ]}
+      />
+    </form>
+
+    <!-- Métricas principales -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <MetricCard
+        title="Ventas Hoy"
+        value={`$${resumen.ventasHoy.toFixed(2)}`}
+        icon="cash"
+        trend={resumen.ventasHoy > 0 ? 'up' : 'neutral'}
+        trendValue={resumen.transaccionesHoy === 1 ? '1 transacción' : `${resumen.transaccionesHoy} transacciones`}
+      />
+      <MetricCard
+        title="Ventas Semana"
+        value={`$${resumen.ventasSemana.toFixed(2)}`}
+        icon="trending-up"
+      />
+      <MetricCard
+        title="Ventas Mes"
+        value={`$${resumen.ventasMes.toFixed(2)}`}
+        icon="calendar"
+      />
+      <MetricCard
+        title="Ticket Promedio"
+        value={`$${resumen.ticketPromedio.toFixed(2)}`}
+        icon="ticket"
+      />
+    </div>
+
+    <!-- Segunda fila de métricas -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <MetricCard
+        title="Efectivo Hoy"
+        value={`$${resumen.totalEfectivo.toFixed(2)}`}
+        icon="cash"
+      />
+      <MetricCard
+        title="Tarjeta Hoy"
+        value={`$${resumen.totalTarjeta.toFixed(2)}`}
+        icon="credit-card"
+      />
+      <MetricCard
+        title="Productos Vendidos Hoy"
+        value={resumen.productosVendidosHoy}
+        icon="package"
+      />
+    </div>
+
+    <!-- Gráfica de ventas -->
+    <SalesChart data={ventasPorDia} title="Ventas del Mes" />
+
+    <!-- Resumen de métodos de pago -->
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm">
+        <h3 class="mb-4 text-lg font-bold text-on-surface">Desglose de Pagos Hoy</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-on-surface-muted">Efectivo</span>
+            <div class="flex items-center gap-2">
+              <div class="h-2 w-48 rounded-full bg-surface-soft overflow-hidden">
+                <div class="h-full rounded-full" style="background-color: #00c758; width: ${resumen.totalEfectivo + resumen.totalTarjeta > 0 ? (resumen.totalEfectivo / (resumen.totalEfectivo + resumen.totalTarjeta) * 100) : 0}%"></div>
+              </div>
+              <span class="text-sm font-semibold text-on-surface">${resumen.totalEfectivo.toFixed(2)}</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-on-surface-muted">Tarjeta</span>
+            <div class="flex items-center gap-2">
+              <div class="h-2 w-48 rounded-full bg-surface-soft overflow-hidden">
+                <div class="h-full rounded-full" style="background-color: #3080ff; width: ${resumen.totalEfectivo + resumen.totalTarjeta > 0 ? (resumen.totalTarjeta / (resumen.totalEfectivo + resumen.totalTarjeta) * 100) : 0}%"></div>
+              </div>
+              <span class="text-sm font-semibold text-on-surface">${resumen.totalTarjeta.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm">
+        <h3 class="mb-4 text-lg font-bold text-on-surface">Resumen Rápido</h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-on-surface-muted">Transacciones hoy</span><span class="font-semibold">{resumen.transaccionesHoy}</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-muted">Productos vendidos</span><span class="font-semibold">{resumen.productosVendidosHoy}</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-muted">Ticket promedio</span><span class="font-semibold">${resumen.ticketPromedio.toFixed(2)}</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-muted">Ventas mes</span><span class="font-semibold">${resumen.ventasMes.toFixed(2)}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,55 @@
+---
+export interface Filter {
+  label: string;
+  name: string;
+  type: 'date' | 'select' | 'text';
+  value?: string;
+  options?: { value: string; label: string }[];
+  placeholder?: string;
+}
+
+export interface Props {
+  filters: Filter[];
+  basePath?: string;
+}
+
+const { filters, basePath = '/' } = Astro.props;
+---
+
+<div class="flex flex-wrap items-end gap-3 rounded-xl border border-outline bg-surface-elevated p-4 shadow-sm">
+  {filters.map(filter => (
+    <div class="flex flex-col gap-1">
+      <label for={`filter-${filter.name}`} class="text-xs font-semibold uppercase tracking-wider text-on-surface-muted">{filter.label}</label>
+      {filter.type === 'select' ? (
+        <select
+          id={`filter-${filter.name}`}
+          name={filter.name}
+          class="h-9 rounded-md border border-outline bg-surface px-3 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20"
+        >
+          {filter.options?.map(opt => (
+            <option value={opt.value} selected={opt.value === filter.value}>{opt.label}</option>
+          ))}
+        </select>
+      ) : filter.type === 'date' ? (
+        <input
+          type="date"
+          id={`filter-${filter.name}`}
+          name={filter.name}
+          value={filter.value ?? ''}
+          class="h-9 rounded-md border border-outline bg-surface px-3 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
+      ) : (
+        <input
+          type="text"
+          id={`filter-${filter.name}`}
+          name={filter.name}
+          value={filter.value ?? ''}
+          placeholder={filter.placeholder ?? ''}
+          class="h-9 rounded-md border border-outline bg-surface px-3 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
+      )}
+    </div>
+  ))}
+  <button type="submit" class="h-9 rounded-md bg-primary px-4 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-strong">Filtrar</button>
+  <a href={basePath} class="flex h-9 items-center rounded-md border border-outline px-4 text-sm font-semibold text-on-surface-muted transition-colors hover:bg-surface">Limpiar</a>
+</div>

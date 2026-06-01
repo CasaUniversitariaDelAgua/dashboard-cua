@@ -1,0 +1,157 @@
+---
+import "../styles/global.css";
+import Icon from "../components/Icon.astro";
+import favicon16 from "../assets/favicon/favicon-16x16.png";
+import favicon32 from "../assets/favicon/favicon-32x32.png";
+import appleTouchIcon from "../assets/favicon/apple-touch-icon.png";
+import android192 from "../assets/favicon/android-chrome-192x192.png";
+import android512 from "../assets/favicon/android-chrome-512x512.png";
+import { Image } from "astro:assets";
+import logo from "../assets/icono-favicon.webp";
+
+export interface Props {
+  title: string;
+  currentPath: string;
+}
+
+const { title, currentPath } = Astro.props;
+
+const navItems = [
+  { href: "/", label: "Resumen General", icon: "chart" },
+  { href: "/cortes-caja", label: "Cortes de Caja", icon: "cash" },
+  { href: "/transacciones", label: "Transacciones", icon: "receipt" },
+  { href: "/souvenirs", label: "Souvenirs", icon: "gift" },
+  { href: "/visitantes", label: "Visitantes", icon: "users" },
+];
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | Dashboard CUA</title>
+    <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
+    <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
+    <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon.src} />
+    <link rel="icon" type="image/png" sizes="192x192" href={android192.src} />
+    <link rel="icon" type="image/png" sizes="512x512" href={android512.src} />
+  </head>
+  <body class="min-h-screen bg-background font-sans text-on-background">
+    <div class="flex min-h-screen">
+      <!-- Sidebar desktop (static) -->
+      <aside
+        class="hidden md:flex md:w-64 md:flex-col md:shrink-0"
+        style="background: rgba(0,0,0,0.70); backdrop-filter: blur(12px); border-right: 1px solid rgba(255,255,255,0.10);"
+      >
+        <div class="flex h-16 items-center gap-3 px-4 border-b border-white/10">
+          <Image src={logo} alt="Logo CUA" width={32} height={32} />
+          <span class="text-sm font-semibold text-on-shell">Dashboard CUA</span>
+        </div>
+        <nav class="flex flex-col gap-1 p-3">
+          {
+            navItems.map((item) => (
+              <a
+                href={item.href}
+                class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition-colors duration-150"
+                class:list={[
+                  currentPath === item.href
+                    ? "bg-primary text-on-primary"
+                    : "text-white/70 hover:bg-white/10 hover:text-white",
+                ]}
+              >
+                <Icon name={item.icon} size={18} />
+                <span>{item.label}</span>
+              </a>
+            ))
+          }
+        </nav>
+      </aside>
+
+      <!-- Sidebar mobile (fixed overlay) -->
+      <aside
+        id="sidebar-mobile"
+        class="fixed left-0 top-0 z-40 h-full w-64 -translate-x-full transition-transform duration-300 md:hidden"
+        style="background: rgba(0,0,0,0.70); backdrop-filter: blur(12px); border-right: 1px solid rgba(255,255,255,0.10);"
+      >
+        <div class="flex h-16 items-center gap-3 px-4 border-b border-white/10">
+          <Image src={logo} alt="Logo CUA" width={32} height={32} />
+          <span class="text-sm font-semibold text-on-shell">Dashboard CUA</span>
+        </div>
+        <nav class="flex flex-col gap-1 p-3">
+          {
+            navItems.map((item) => (
+              <a
+                href={item.href}
+                class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition-colors duration-150"
+                class:list={[
+                  currentPath === item.href
+                    ? "bg-primary text-on-primary"
+                    : "text-white/70 hover:bg-white/10 hover:text-white",
+                ]}
+              >
+                <Icon name={item.icon} size={18} />
+                <span>{item.label}</span>
+              </a>
+            ))
+          }
+        </nav>
+      </aside>
+
+      <!-- Overlay for mobile -->
+      <div
+        id="sidebar-overlay"
+        class="fixed inset-0 z-30 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 md:hidden"
+      >
+      </div>
+
+      <!-- Main content -->
+      <div class="flex flex-1 flex-col min-w-0">
+        <header
+          class="sticky top-0 z-20 flex h-16 items-center gap-4 px-6"
+          style="background: rgba(0,0,0,0.70); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.10);"
+        >
+          <button
+            id="menu-toggle"
+            class="flex h-10 w-10 items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white md:hidden"
+          >
+            <Icon name="menu" size={20} />
+          </button>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-white/70"
+              >CUA Dashboard</span
+            >
+            <span class="text-xs text-white/40">/</span>
+            <span class="text-sm font-semibold text-white">{title}</span>
+          </div>
+        </header>
+
+        <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const toggle = document.getElementById("menu-toggle");
+      const sidebar = document.getElementById("sidebar-mobile");
+      const overlay = document.getElementById("sidebar-overlay");
+
+      if (toggle && sidebar && overlay) {
+        toggle.addEventListener("click", () => {
+          const isOpen = !sidebar.classList.contains("-translate-x-full");
+          sidebar.classList.toggle("-translate-x-full", isOpen);
+          overlay.classList.toggle("opacity-0", isOpen);
+          overlay.classList.toggle("pointer-events-none", isOpen);
+          document.body.classList.toggle("overflow-hidden", !isOpen);
+        });
+
+        overlay.addEventListener("click", () => {
+          sidebar.classList.add("-translate-x-full");
+          overlay.classList.add("opacity-0", "pointer-events-none");
+          document.body.classList.remove("overflow-hidden");
+        });
+      }
+    </script>
+  </body>
+</html>

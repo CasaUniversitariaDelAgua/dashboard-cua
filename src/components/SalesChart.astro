@@ -1,0 +1,77 @@
+---
+export interface Props {
+  data: Array<{ fecha: string; total: number; transacciones: number }>;
+  title?: string;
+}
+const { data, title } = Astro.props;
+const chartId = 'sales-chart-' + Math.random().toString(36).slice(2, 8);
+---
+
+<div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm">
+  {title && <h3 class="mb-4 text-lg font-bold text-on-surface">{title}</h3>}
+  <canvas id={chartId} class="max-h-80 w-full"></canvas>
+</div>
+
+<script>
+  import { Chart, registerables } from 'chart.js';
+  Chart.register(...registerables);
+
+  const data = JSON.parse('$${JSON.stringify(data)}');
+  const canvas = document.getElementById('$${chartId}') as HTMLCanvasElement;
+  if (!canvas) throw new Error('Canvas not found');
+
+  new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.fecha.split('-').slice(1).join('/')),
+      datasets: [
+        {
+          label: 'Ventas ($)',
+          data: data.map(d => d.total),
+          backgroundColor: 'rgba(254, 110, 0, 0.60)',
+          borderColor: '#fe6e00',
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Transacciones',
+          data: data.map(d => d.transacciones),
+          backgroundColor: 'rgba(0, 199, 88, 0.40)',
+          borderColor: '#00c758',
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'y1',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { usePointStyle: true, padding: 20, font: { size: 12 } },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#e3e0dd' },
+          ticks: { color: '#797067', font: { size: 11 } },
+        },
+        y1: {
+          beginAtZero: true,
+          position: 'right',
+          grid: { display: false },
+          ticks: { color: '#797067', font: { size: 11 } },
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#797067', font: { size: 11 } },
+        },
+      },
+    },
+  });
+</script>
