@@ -175,7 +175,8 @@ export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; m
 export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: string; limite?: number }) {
   let query = supabase
     .from('transaccion_detalles')
-    .select('cantidad, precio_unitario, producto:productos(nombre), transaccion_id');
+    .select('cantidad, precio_unitario, producto:productos!inner(nombre, tipo), transaccion_id')
+    .eq('producto.tipo', 'souvenir');
 
   if (opts?.desde || opts?.hasta) {
     let txQuery = supabase.from('transacciones').select('id');
@@ -184,6 +185,8 @@ export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: s
     const { data: txIds } = await txQuery;
     if (txIds && txIds.length > 0) {
       query = query.in('transaccion_id', txIds.map(t => t.id));
+    } else {
+      return [];
     }
   }
 
@@ -192,14 +195,12 @@ export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: s
 
   const mapa = new Map<string, { cantidad: number; total: number }>();
   for (const d of data ?? []) {
-    if (d.producto && Array.isArray(d.producto)) {
-      const p = d.producto[0];
-      if (p?.nombre) {
-        const actual = mapa.get(p.nombre) ?? { cantidad: 0, total: 0 };
-        actual.cantidad += d.cantidad;
-        actual.total += d.cantidad * d.precio_unitario;
-        mapa.set(p.nombre, actual);
-      }
+    const p = Array.isArray(d.producto) ? d.producto[0] : d.producto;
+    if (p?.nombre) {
+      const actual = mapa.get(p.nombre) ?? { cantidad: 0, total: 0 };
+      actual.cantidad += d.cantidad;
+      actual.total += d.cantidad * d.precio_unitario;
+      mapa.set(p.nombre, actual);
     }
   }
 
