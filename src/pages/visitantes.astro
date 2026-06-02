@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import MetricCard from "../components/MetricCard.astro";
 import FilterBar from "../components/FilterBar.astro";
+import VisitorChart from "../components/VisitorChart.astro";
 import { getTotalVisitantes, getVentasPorDia } from "../lib/queries";
 import { getFilters } from "../lib/filters";
 
@@ -98,52 +99,9 @@ const tituloPeriodo =
       />
     </div>
 
-    <div
-      class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm"
-    >
-      <h3 class="mb-4 text-lg font-bold text-on-surface">
-        Actividad Diaria ({tituloPeriodo})
-      </h3>
-      {
-        ventasPorDia.length > 0 ? (
-          <div class="space-y-2">
-            {ventasPorDia.map((dia) => {
-              const maxVisitantes = Math.max(
-                ...ventasPorDia.map((d) => d.visitantes ?? 0),
-              );
-              const porcentaje =
-                maxVisitantes > 0
-                  ? ((dia.visitantes ?? 0) / maxVisitantes) * 100
-                  : 0;
-              return (
-                <div class="flex items-center gap-3">
-                  <span class="w-24 text-xs font-medium text-on-surface-muted shrink-0">
-                    {dia.fecha.split("-").slice(1).join("/")}
-                  </span>
-                  <div
-                    class="flex-1 h-6 rounded-md overflow-hidden"
-                    style="background-color: rgba(254, 110, 0, 0.08);"
-                  >
-                    <div
-                      class="h-full rounded-md flex items-center justify-end px-2 text-xs font-semibold text-white transition-all duration-300"
-                      style={`background-color: #fe6e00; width: ${porcentaje}%; opacity: ${0.3 + (porcentaje / 100) * 0.7};`}
-                    >
-                      {porcentaje > 15 && <span>{dia.visitantes ?? 0}</span>}
-                    </div>
-                  </div>
-                  <span class="w-16 text-right text-xs font-semibold text-on-surface shrink-0">
-                    {dia.visitantes ?? 0}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p class="text-center text-on-surface-muted py-8">
-            No hay datos de actividad para este período
-          </p>
-        )
-      }
-    </div>
+    <VisitorChart
+      data={ventasPorDia}
+      title={`Actividad Diaria (${tituloPeriodo})`}
+    />
   </div>
 </Layout>
