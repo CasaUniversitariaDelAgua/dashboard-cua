@@ -37,13 +37,10 @@ function parseCookies(cookieString: string | null): Record<string, string> {
 export function getSession(request: Request): SessionUser | null {
   const cookies = parseCookies(request.headers.get('cookie'));
   const raw = cookies[SESSION_KEY];
-  console.log('getSession raw cookie:', raw);
   if (!raw) return null;
   try {
     const user = JSON.parse(raw) as SessionUser;
-    console.log('getSession parsed user:', user);
     if (user.rol !== 'admin' && user.rol !== 'administrador') {
-      console.log('getSession user.rol invalid:', user.rol);
       return null;
     }
     return user;

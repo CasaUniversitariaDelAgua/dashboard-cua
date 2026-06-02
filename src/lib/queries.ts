@@ -104,35 +104,68 @@ export async function getTransacciones(opts?: { desde?: string; hasta?: string; 
     result = result.filter(t =>
       t.id.toLowerCase().includes(q) ||
       t.usuario?.nombre?.toLowerCase().includes(q) ||
-      t.detalles?.some(d => d.producto?.nombre?.toLowerCase().includes(q))
+      t.detalles?.some((d: { producto: { nombre: string; }; }) => d.producto?.nombre?.toLowerCase().includes(q))
     );
   }
 
   return result;
 }
 
-export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; mes?: number; año?: number }): Promise<VentaPorDia[]> {
-  const ahora = new Date();
-  const m = opts?.mes ?? ahora.getMonth() + 1;
-  const a = opts?.año ?? ahora.getFullYear();
-  const inicio = opts?.desde ? new Date(opts.desde) : new Date(a, m - 1, 1);
-  const fin = opts?.hasta ? new Date(opts.hasta + 'T23:59:59Z') : new Date(a, m, 0, 23, 59, 59);
-
-  const { data, error } = await supabase
+export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; mes?: number | string; año?: number | string }): Promise<VentaPorDia[]> {
+  let query = supabase
     .from('transacciones')
-    .select('fecha_hora, total')
-    .gte('fecha_hora', inicio.toISOString())
-    .lte('fecha_hora', fin.toISOString())
-    .order('fecha_hora', { ascending: true });
+    .select('fecha_hora, total, detalles:transaccion_detalles(cantidad, producto:productos(tipo))');
 
+  const mesVal = (opts?.mes && opts.mes !== 'todos') ? parseInt(String(opts.mes)) : undefined;
+  const añoVal = (opts?.año && opts.año !== 'todos') ? parseInt(String(opts.año)) : undefined;
+
+  if (opts?.desde) {
+    query = query.gte('fecha_hora', `${opts.desde}T00:00:00Z`);
+  }
+  if (opts?.hasta) {
+    query = query.lte('fecha_hora', `${opts.hasta}T23:59:59Z`);
+  }
+
+  if (!opts?.desde && !opts?.hasta) {
+    if (añoVal !== undefined) {
+      if (mesVal !== undefined) {
+        const inicio = new Date(añoVal, mesVal - 1, 1);
+        const fin = new Date(añoVal, mesVal, 0, 23, 59, 59);
+        query = query.gte('fecha_hora', inicio.toISOString()).lte('fecha_hora', fin.toISOString());
+      } else {
+        const inicio = new Date(añoVal, 0, 1);
+        const fin = new Date(añoVal, 11, 31, 23, 59, 59);
+        query = query.gte('fecha_hora', inicio.toISOString()).lte('fecha_hora', fin.toISOString());
+      }
+    } else if (mesVal !== undefined) {
+      const ahora = new Date();
+      const inicio = new Date(ahora.getFullYear(), mesVal - 1, 1);
+      const fin = new Date(ahora.getFullYear(), mesVal, 0, 23, 59, 59);
+      query = query.gte('fecha_hora', inicio.toISOString()).lte('fecha_hora', fin.toISOString());
+    }
+  }
+
+  const { data, error } = await query.order('fecha_hora', { ascending: true });
   if (error) throw error;
 
-  const mapa = new Map<string, { total: number; transacciones: number }>();
+  const mapa = new Map<string, { total: number; transacciones: number; visitantes: number }>();
   for (const t of data ?? []) {
     const dia = t.fecha_hora.split('T')[0];
-    const actual = mapa.get(dia) ?? { total: 0, transacciones: 0 };
+    const actual = mapa.get(dia) ?? { total: 0, transacciones: 0, visitantes: 0 };
     actual.total += t.total;
     actual.transacciones += 1;
+
+    let visitantesEnTx = 0;
+    if (t.detalles) {
+      const detallesList = Array.isArray(t.detalles) ? t.detalles : [t.detalles];
+      for (const d of detallesList) {
+        const prod = Array.isArray(d.producto) ? d.producto[0] : d.producto;
+        if (prod && prod.tipo === 'entrada') {
+          visitantesEnTx += d.cantidad;
+        }
+      }
+    }
+    actual.visitantes += visitantesEnTx;
     mapa.set(dia, actual);
   }
 
@@ -179,40 +212,70 @@ export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: s
 
 export async function getTotalVisitantes(opts?: { mes?: string; año?: string }) {
   const ahora = new Date();
-  const mesActual = opts?.mes ? parseInt(opts.mes) : ahora.getMonth() + 1;
-  const añoActual = opts?.año ? parseInt(opts.año) : ahora.getFullYear();
+  const mesActual = (opts?.mes && opts.mes !== 'todos') ? parseInt(opts.mes) : undefined;
+  const añoActual = (opts?.año && opts.año !== 'todos') ? parseInt(opts.año) : undefined;
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
-  const { count: hoyCount } = await supabase
-    .from('transacciones')
-    .select('*', { count: 'exact', head: true })
-    .gte('fecha_hora', hoy.toISOString());
+  // 1. Visitantes Hoy
+  const { data: hoyData } = await supabase
+    .from('transaccion_detalles')
+    .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(tipo)')
+    .eq('producto.tipo', 'entrada')
+    .gte('transaccion.fecha_hora', hoy.toISOString());
 
-  const inicioMes = new Date(añoActual, mesActual - 1, 1);
-  const finMes = new Date(añoActual, mesActual, 0, 23, 59, 59);
+  const visitantesHoy = (hoyData ?? []).reduce((sum, item) => sum + item.cantidad, 0);
 
-  const { count: mesCount } = await supabase
-    .from('transacciones')
-    .select('*', { count: 'exact', head: true })
-    .gte('fecha_hora', inicioMes.toISOString())
-    .lte('fecha_hora', finMes.toISOString());
+  // 2. Visitantes Acumulado Histórico (Todo el tiempo)
+  const { data: acumuladoData } = await supabase
+    .from('transaccion_detalles')
+    .select('cantidad, producto:productos!inner(tipo)')
+    .eq('producto.tipo', 'entrada');
 
-  const { data: uniqueDays } = await supabase
-    .from('transacciones')
-    .select('fecha_hora')
-    .gte('fecha_hora', inicioMes.toISOString())
-    .lte('fecha_hora', finMes.toISOString());
+  const visitantesAcumulado = (acumuladoData ?? []).reduce((sum, item) => sum + item.cantidad, 0);
 
-  const diasUnicos = new Set(
-    (uniqueDays ?? []).map(t => t.fecha_hora.split('T')[0])
-  );
+  // 3. Visitantes Período (si hay filtros, de lo contrario es igual al histórico)
+  let periodQuery = supabase
+    .from('transaccion_detalles')
+    .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(tipo)')
+    .eq('producto.tipo', 'entrada');
+  
+  if (añoActual !== undefined) {
+    if (mesActual !== undefined) {
+      const inicioMes = new Date(añoActual, mesActual - 1, 1);
+      const finMes = new Date(añoActual, mesActual, 0, 23, 59, 59);
+      periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioMes.toISOString()).lte('transaccion.fecha_hora', finMes.toISOString());
+    } else {
+      const inicioAño = new Date(añoActual, 0, 1);
+      const finAño = new Date(añoActual, 11, 31, 23, 59, 59);
+      periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioAño.toISOString()).lte('transaccion.fecha_hora', finAño.toISOString());
+    }
+  } else if (mesActual !== undefined) {
+    const añoUso = ahora.getFullYear();
+    const inicioMes = new Date(añoUso, mesActual - 1, 1);
+    const finMes = new Date(añoUso, mesActual, 0, 23, 59, 59);
+    periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioMes.toISOString()).lte('transaccion.fecha_hora', finMes.toISOString());
+  }
+
+  const { data: mesData } = await periodQuery;
+
+  let visitantesPeriodo = 0;
+  const diasUnicos = new Set<string>();
+  for (const item of mesData ?? []) {
+    visitantesPeriodo += item.cantidad;
+    const trans = item.transaccion as any;
+    if (trans && !Array.isArray(trans) && trans.fecha_hora) {
+      const dia = trans.fecha_hora.split('T')[0];
+      diasUnicos.add(dia);
+    }
+  }
 
   return {
-    visitantes_hoy: hoyCount ?? 0,
-    visitantes_mes: mesCount ?? 0,
+    visitantes_hoy: visitantesHoy,
+    visitantes_mes: visitantesPeriodo,
+    visitantes_acumulado: visitantesAcumulado,
     dias_con_ventas: diasUnicos.size,
-    promedio_por_dia: diasUnicos.size > 0 ? Math.round((mesCount ?? 0) / diasUnicos.size) : 0,
+    promedio_por_dia: diasUnicos.size > 0 ? Math.round(visitantesPeriodo / diasUnicos.size) : 0,
   };
 }

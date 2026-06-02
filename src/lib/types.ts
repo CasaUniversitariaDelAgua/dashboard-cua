@@ -67,4 +67,6 @@ export interface VentaPorDia {
   fecha: string;
   total: number;
   transacciones: number;
+  visitantes: number;
 }
+

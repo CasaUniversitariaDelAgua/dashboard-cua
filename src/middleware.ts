@@ -8,7 +8,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (protectedPaths.includes(url.pathname)) {
     const user = getSession(request);
-    console.log('Middleware session check:', { path: url.pathname, user });
     if (!user) {
       const dest = encodeURIComponent(url.pathname + url.search);
       return redirect(`/login?redirect=${dest}`);
@@ -17,7 +16,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   if (url.pathname === '/login' && getSession(request)) {
-    console.log('Middleware redirecting logged-in user from login page');
     return redirect('/');
   }
 
