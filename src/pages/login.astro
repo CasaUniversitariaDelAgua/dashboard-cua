@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
 import { loginWithPin, setSessionCookie } from "../lib/auth";
+import Image from "astro/components/Image.astro";
+import logo from "../assets/icono-favicon.webp";
 
 const error = Astro.url.searchParams.get("error");
 const redirectTo = Astro.url.searchParams.get("redirect") ?? "/";
@@ -42,13 +44,16 @@ if (Astro.request.method === "POST") {
         style="background-color: #fe6e00;"
       >
         <div class="max-w-md text-center">
-          <div
-            class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20"
-          >
-            <span class="text-3xl font-bold text-white">C</span>
+          <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center">
+            <span class="text-4xl font-bold text-white">PANEL DE CONTROL</span>
           </div>
-          <h1 class="text-4xl font-bold text-white mb-2">Dashboard CUA</h1>
-          <p class="text-lg text-white/80">Panel de administración</p>
+          <Image
+            src={logo}
+            alt="Logo CUA"
+            width={400}
+            height={400}
+            class="mx-auto mb-4"
+          />
         </div>
       </div>
 
