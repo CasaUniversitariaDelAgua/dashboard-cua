@@ -8,14 +8,9 @@ import android192 from "../assets/favicon/android-chrome-192x192.png";
 import android512 from "../assets/favicon/android-chrome-512x512.png";
 import { Image } from "astro:assets";
 import logo from "../assets/icono-favicon.webp";
+import type { LayoutProps } from "../lib/types";
 
-export interface Props {
-  title: string;
-  currentPath: string;
-  user?: { nombre: string };
-}
-
-const { title, currentPath, user } = Astro.props;
+const { title, currentPath, user } = Astro.props as LayoutProps;
 
 const navItems = [
   { href: "/", label: "Resumen General", icon: "chart" },
@@ -119,13 +114,25 @@ const navItems = [
             <Icon name="menu" size={20} />
           </button>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-white/70">CUA Dashboard</span>
+            <span class="text-sm font-semibold text-white/70"
+              >CUA Dashboard</span
+            >
             <span class="text-xs text-white/40">/</span>
             <span class="text-sm font-semibold text-white">{title}</span>
           </div>
           <div class="ml-auto flex items-center gap-3">
-            {user && <span class="text-xs font-medium text-white/60">{user.nombre}</span>}
-            <a href="/logout" class="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:bg-white/20 hover:text-white">Salir</a>
+            {
+              user && (
+                <span class="text-xs font-medium text-white/60">
+                  {user.nombre}
+                </span>
+              )
+            }
+            <a
+              href="/logout"
+              class="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+              >Salir</a
+            >
           </div>
         </header>
 

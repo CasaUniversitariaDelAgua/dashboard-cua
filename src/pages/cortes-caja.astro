@@ -1,71 +1,149 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import MetricCard from '../components/MetricCard.astro';
-import FilterBar from '../components/FilterBar.astro';
-import { getCortesCaja } from '../lib/queries';
-import { getFilters } from '../lib/filters';
-import { formatCurrency } from '../lib/format';
+import Layout from "../layouts/Layout.astro";
+import MetricCard from "../components/MetricCard.astro";
+import FilterBar from "../components/FilterBar.astro";
+import { getCortesCaja } from "../lib/queries";
+import { getFilters } from "../lib/filters";
+import { formatCurrency } from "../lib/format";
 
 const filters = getFilters(Astro.url);
-const cortes = await getCortesCaja({ desde: filters.desde, hasta: filters.hasta, usuario: filters.usuario });
+const cortes = await getCortesCaja({
+  desde: filters.desde,
+  hasta: filters.hasta,
+  usuario: filters.usuario,
+});
 
 const totalEfectivo = cortes.reduce((s, c) => s + c.total_efectivo, 0);
 const totalTarjeta = cortes.reduce((s, c) => s + c.total_tarjeta, 0);
 const totalGeneral = totalEfectivo + totalTarjeta;
 ---
 
-<Layout title="Cortes de Caja" currentPath="/cortes-caja" user={Astro.locals.user}>
+<Layout
+  title="Cortes de Caja"
+  currentPath="/cortes-caja"
+  user={Astro.locals.user}
+>
   <div class="space-y-6">
     <div>
-      <h1 class="text-2xl font-bold text-on-surface">Historial de Cortes de Caja</h1>
-      <p class="text-sm text-on-surface-muted">Todos los cortes registrados en el sistema</p>
+      <h1 class="text-2xl font-bold text-on-surface">
+        Historial de Cortes de Caja
+      </h1>
+      <p class="text-sm text-on-surface-muted">
+        Todos los cortes registrados en el sistema
+      </p>
     </div>
 
     <form method="GET" action="/cortes-caja">
       <FilterBar
         basePath="/cortes-caja"
         filters={[
-          { label: 'Desde', name: 'desde', type: 'date', value: filters.desde },
-          { label: 'Hasta', name: 'hasta', type: 'date', value: filters.hasta },
-          { label: 'Usuario ID', name: 'usuario', type: 'text', value: filters.usuario, placeholder: 'ID del usuario' },
+          { label: "Desde", name: "desde", type: "date", value: filters.desde },
+          { label: "Hasta", name: "hasta", type: "date", value: filters.hasta },
+          {
+            label: "Usuario ID",
+            name: "usuario",
+            type: "text",
+            value: filters.usuario,
+            placeholder: "ID del usuario",
+          },
         ]}
       />
     </form>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <MetricCard title="Total Efectivo" value={`$${formatCurrency(totalEfectivo)}`} icon="cash" />
-      <MetricCard title="Total Tarjeta" value={`$${formatCurrency(totalTarjeta)}`} icon="credit-card" />
-      <MetricCard title="Total General" value={`$${formatCurrency(totalGeneral)}`} icon="cash" />
+      <MetricCard
+        title="Total Efectivo"
+        value={`$${formatCurrency(totalEfectivo)}`}
+        icon="cash"
+      />
+      <MetricCard
+        title="Total Tarjeta"
+        value={`$${formatCurrency(totalTarjeta)}`}
+        icon="credit-card"
+      />
+      <MetricCard
+        title="Total General"
+        value={`$${formatCurrency(totalGeneral)}`}
+        icon="cash"
+      />
     </div>
 
-    <div class="overflow-x-auto rounded-xl border border-outline bg-surface-elevated shadow-sm">
+    <div
+      class="overflow-x-auto rounded-xl border border-outline bg-surface-elevated shadow-sm"
+    >
       <table class="w-full text-sm">
         <thead>
           <tr class="h-12 border-b border-outline bg-primary/5">
-            <th class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong">Fecha Inicio</th>
-            <th class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong">Fecha Fin</th>
-            <th class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong">Usuario</th>
-            <th class="px-4 text-right text-xs font-semibold uppercase tracking-wider text-primary-strong">Efectivo</th>
-            <th class="px-4 text-right text-xs font-semibold uppercase tracking-wider text-primary-strong">Tarjeta</th>
-            <th class="px-4 text-right text-xs font-semibold uppercase tracking-wider text-primary-strong">Total</th>
-            <th class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong">Observaciones</th>
+            <th
+              class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong"
+              >Fecha Inicio</th
+            >
+            <th
+              class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong"
+              >Fecha Fin</th
+            >
+            <th
+              class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong"
+              >Usuario</th
+            >
+            <th
+              class="px-4 text-right text-xs font-semibold uppercase tracking-wider text-primary-strong"
+              >Efectivo</th
+            >
+            <th
+              class="px-4 text-right text-xs font-semibold uppercase tracking-wider text-primary-strong"
+              >Tarjeta</th
+            >
+            <th
+              class="px-4 text-right text-xs font-semibold uppercase tracking-wider text-primary-strong"
+              >Total</th
+            >
+            <th
+              class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong"
+              >Observaciones</th
+            >
           </tr>
         </thead>
         <tbody>
-          {cortes.length === 0 && (
-            <tr><td colspan="7" class="px-4 py-8 text-center text-on-surface-muted">No hay cortes de caja registrados</td></tr>
-          )}
-          {cortes.map(corte => (
-            <tr class="border-b border-outline transition-colors hover:bg-surface-soft/50">
-              <td class="px-4 py-3 font-medium text-on-surface">{new Date(corte.fecha_inicio).toLocaleString('es-MX')}</td>
-              <td class="px-4 py-3 text-on-surface-muted">{new Date(corte.fecha_fin).toLocaleString('es-MX')}</td>
-              <td class="px-4 py-3 text-on-surface">{corte.usuario?.nombre ?? '—'}</td>
-              <td class="px-4 py-3 text-right font-medium text-success">${formatCurrency(corte.total_efectivo)}</td>
-              <td class="px-4 py-3 text-right font-medium text-info">${formatCurrency(corte.total_tarjeta)}</td>
-              <td class="px-4 py-3 text-right font-bold text-on-surface">${formatCurrency(corte.total_efectivo + corte.total_tarjeta)}</td>
-              <td class="px-4 py-3 text-on-surface-muted max-w-48 truncate">{corte.observaciones ?? '—'}</td>
-            </tr>
-          ))}
+          {
+            cortes.length === 0 && (
+              <tr>
+                <td
+                  colspan="7"
+                  class="px-4 py-8 text-center text-on-surface-muted"
+                >
+                  No hay cortes de caja registrados
+                </td>
+              </tr>
+            )
+          }
+          {
+            cortes.map((corte) => (
+              <tr class="border-b border-outline transition-colors hover:bg-surface-soft/50">
+                <td class="px-4 py-3 font-medium text-on-surface">
+                  {new Date(corte.fecha_inicio).toLocaleString("es-MX")}
+                </td>
+                <td class="px-4 py-3 text-on-surface-muted">
+                  {new Date(corte.fecha_fin).toLocaleString("es-MX")}
+                </td>
+                <td class="px-4 py-3 text-on-surface">
+                  {corte.usuario?.nombre ?? "—"}
+                </td>
+                <td class="px-4 py-3 text-right font-medium text-success">
+                  ${formatCurrency(corte.total_efectivo)}
+                </td>
+                <td class="px-4 py-3 text-right font-medium text-info">
+                  ${formatCurrency(corte.total_tarjeta)}
+                </td>
+                <td class="px-4 py-3 text-right font-bold text-on-surface">
+                  ${formatCurrency(corte.total_efectivo + corte.total_tarjeta)}
+                </td>
+                <td class="px-4 py-3 text-on-surface-muted max-w-48 truncate">
+                  {corte.observaciones ?? "—"}
+                </td>
+              </tr>
+            ))
+          }
         </tbody>
       </table>
     </div>

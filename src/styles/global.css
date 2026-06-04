@@ -24,7 +24,6 @@
   --color-info: #3080ff;
 }
 
-
 body {
   background-color: var(--color-background);
   color: var(--color-on-background);

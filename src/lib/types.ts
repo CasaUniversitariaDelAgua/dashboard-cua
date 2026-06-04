@@ -70,3 +70,42 @@ export interface VentaPorDia {
   visitantes: number;
 }
 
+export interface MetricProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon?: string;
+  trend?: "up" | "down" | "neutral";
+  trendValue?: string;
+}
+
+export interface IconProps {
+  name: string;
+  class?: string;
+  size?: number;
+}
+
+export interface Filter {
+  label: string;
+  name: string;
+  type: "date" | "select" | "text";
+  value?: string;
+  options?: { value: string; label: string }[];
+  placeholder?: string;
+}
+
+export interface FilterProps {
+  filters: Filter[];
+  basePath?: string;
+}
+
+export interface LayoutProps {
+  title: string;
+  currentPath: string;
+  user?: { nombre: string };
+}
+
+export interface VisitorChartProps {
+  data: Array<{ fecha: string; total: number; transacciones: number }>;
+  title?: string;
+}
