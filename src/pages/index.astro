@@ -5,6 +5,7 @@ import SalesChart from '../components/SalesChart.astro';
 import FilterBar from '../components/FilterBar.astro';
 import { getResumenGeneral, getVentasPorDia } from '../lib/queries';
 import { getFilters } from '../lib/filters';
+import { formatCurrency } from '../lib/format';
 
 const filters = getFilters(Astro.url);
 const resumen = await getResumenGeneral({ desde: filters.desde, hasta: filters.hasta });
@@ -44,24 +45,24 @@ const ventasPorDia = await getVentasPorDia({
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <MetricCard
         title="Ventas Hoy"
-        value={`$${resumen.ventasHoy.toFixed(2)}`}
+        value={`$${formatCurrency(resumen.ventasHoy)}`}
         icon="cash"
         trend={resumen.ventasHoy > 0 ? 'up' : 'neutral'}
         trendValue={resumen.transaccionesHoy === 1 ? '1 transacción' : `${resumen.transaccionesHoy} transacciones`}
       />
       <MetricCard
         title="Ventas Semana"
-        value={`$${resumen.ventasSemana.toFixed(2)}`}
+        value={`$${formatCurrency(resumen.ventasSemana)}`}
         icon="trending-up"
       />
       <MetricCard
         title="Ventas Mes"
-        value={`$${resumen.ventasMes.toFixed(2)}`}
+        value={`$${formatCurrency(resumen.ventasMes)}`}
         icon="calendar"
       />
       <MetricCard
         title="Ticket Promedio"
-        value={`$${resumen.ticketPromedio.toFixed(2)}`}
+        value={`$${formatCurrency(resumen.ticketPromedio)}`}
         icon="ticket"
       />
     </div>
@@ -70,12 +71,12 @@ const ventasPorDia = await getVentasPorDia({
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <MetricCard
         title="Efectivo Hoy"
-        value={`$${resumen.totalEfectivo.toFixed(2)}`}
+        value={`$${formatCurrency(resumen.totalEfectivo)}`}
         icon="cash"
       />
       <MetricCard
         title="Tarjeta Hoy"
-        value={`$${resumen.totalTarjeta.toFixed(2)}`}
+        value={`$${formatCurrency(resumen.totalTarjeta)}`}
         icon="credit-card"
       />
       <MetricCard
@@ -97,18 +98,18 @@ const ventasPorDia = await getVentasPorDia({
             <span class="text-sm text-on-surface-muted">Efectivo</span>
             <div class="flex items-center gap-2">
               <div class="h-2 w-48 rounded-full bg-surface-soft overflow-hidden">
-                <div class="h-full rounded-full" style="background-color: #00c758; width: ${resumen.totalEfectivo + resumen.totalTarjeta > 0 ? (resumen.totalEfectivo / (resumen.totalEfectivo + resumen.totalTarjeta) * 100) : 0}%"></div>
+                <div class="h-full rounded-full" style={`background-color: #00c758; width: ${resumen.totalEfectivo + resumen.totalTarjeta > 0 ? (resumen.totalEfectivo / (resumen.totalEfectivo + resumen.totalTarjeta) * 100) : 0}%`}></div>
               </div>
-              <span class="text-sm font-semibold text-on-surface">${resumen.totalEfectivo.toFixed(2)}</span>
+              <span class="text-sm font-semibold text-on-surface">${formatCurrency(resumen.totalEfectivo)}</span>
             </div>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-sm text-on-surface-muted">Tarjeta</span>
             <div class="flex items-center gap-2">
               <div class="h-2 w-48 rounded-full bg-surface-soft overflow-hidden">
-                <div class="h-full rounded-full" style="background-color: #3080ff; width: ${resumen.totalEfectivo + resumen.totalTarjeta > 0 ? (resumen.totalTarjeta / (resumen.totalEfectivo + resumen.totalTarjeta) * 100) : 0}%"></div>
+                <div class="h-full rounded-full" style={`background-color: #3080ff; width: ${resumen.totalEfectivo + resumen.totalTarjeta > 0 ? (resumen.totalTarjeta / (resumen.totalEfectivo + resumen.totalTarjeta) * 100) : 0}%`}></div>
               </div>
-              <span class="text-sm font-semibold text-on-surface">${resumen.totalTarjeta.toFixed(2)}</span>
+              <span class="text-sm font-semibold text-on-surface">${formatCurrency(resumen.totalTarjeta)}</span>
             </div>
           </div>
         </div>
@@ -119,8 +120,8 @@ const ventasPorDia = await getVentasPorDia({
         <div class="space-y-2 text-sm">
           <div class="flex justify-between"><span class="text-on-surface-muted">Transacciones hoy</span><span class="font-semibold">{resumen.transaccionesHoy}</span></div>
           <div class="flex justify-between"><span class="text-on-surface-muted">Productos vendidos</span><span class="font-semibold">{resumen.productosVendidosHoy}</span></div>
-          <div class="flex justify-between"><span class="text-on-surface-muted">Ticket promedio</span><span class="font-semibold">${resumen.ticketPromedio.toFixed(2)}</span></div>
-          <div class="flex justify-between"><span class="text-on-surface-muted">Ventas mes</span><span class="font-semibold">${resumen.ventasMes.toFixed(2)}</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-muted">Ticket promedio</span><span class="font-semibold">${formatCurrency(resumen.ticketPromedio)}</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-muted">Ventas mes</span><span class="font-semibold">${formatCurrency(resumen.ventasMes)}</span></div>
         </div>
       </div>
     </div>

@@ -12,14 +12,14 @@ async function getResumenPorRango(desde?: string, hasta?: string) {
       .gte('fecha_hora', toISO(inicio)).lte('fecha_hora', toISO(fin)),
     supabase.from('transacciones').select('total, metodo_pago')
       .gte('fecha_hora', toISO(inicio)).lte('fecha_hora', toISO(fin)),
-    supabase.from('transaccion_detalles').select('cantidad')
-      .gte('transaccion_id', toISO(inicio)),
+    supabase.from('transaccion_detalles').select('cantidad, transaccion:transacciones!inner(fecha_hora)')
+      .gte('transaccion.fecha_hora', toISO(inicio)).lte('transaccion.fecha_hora', toISO(fin)),
   ]);
 
   const total = ventas?.reduce((s, t) => s + t.total, 0) ?? 0;
   const count = transacciones ?? 0;
-  const totalEfectivo = ventas?.filter(t => t.metodo_pago === 'efectivo').reduce((s, t) => s + t.total, 0) ?? 0;
-  const totalTarjeta = ventas?.filter(t => t.metodo_pago === 'tarjeta').reduce((s, t) => s + t.total, 0) ?? 0;
+  const totalEfectivo = ventas?.filter(t => t.metodo_pago === 'efectivo' || t.metodo_pago === '0').reduce((s, t) => s + t.total, 0) ?? 0;
+  const totalTarjeta = ventas?.filter(t => t.metodo_pago === 'tarjeta' || t.metodo_pago === '1').reduce((s, t) => s + t.total, 0) ?? 0;
   const productosVendidos = detalles?.reduce((s, d) => s + d.cantidad, 0) ?? 0;
 
   return {
@@ -53,8 +53,8 @@ export async function getResumenGeneral(opts?: { desde?: string; hasta?: string 
     supabase.from('transacciones').select('total').gte('fecha_hora', toISO(hoy)),
     supabase.from('transacciones').select('total').gte('fecha_hora', toISO(inicioSemana)),
     supabase.from('transacciones').select('total').gte('fecha_hora', toISO(inicioMes)),
-    supabase.from('transaccion_detalles').select('cantidad')
-      .gte('transaccion_id', toISO(hoy)),
+    supabase.from('transaccion_detalles').select('cantidad, transaccion:transacciones!inner(fecha_hora)')
+      .gte('transaccion.fecha_hora', toISO(hoy)),
   ]);
 
   const ventasHoy = ventasHoyData.data?.reduce((s, t) => s + t.total, 0) ?? 0;
@@ -65,8 +65,8 @@ export async function getResumenGeneral(opts?: { desde?: string; hasta?: string 
   const productosVendidosHoy = detallesHoy.data?.reduce((s, d) => s + d.cantidad, 0) ?? 0;
 
   const { data: ventas } = await supabase.from('transacciones').select('total, metodo_pago').gte('fecha_hora', toISO(hoy));
-  const totalEfectivo = ventas?.filter(t => t.metodo_pago === 'efectivo').reduce((s, t) => s + t.total, 0) ?? 0;
-  const totalTarjeta = ventas?.filter(t => t.metodo_pago === 'tarjeta').reduce((s, t) => s + t.total, 0) ?? 0;
+  const totalEfectivo = ventas?.filter(t => t.metodo_pago === 'efectivo' || t.metodo_pago === '0').reduce((s, t) => s + t.total, 0) ?? 0;
+  const totalTarjeta = ventas?.filter(t => t.metodo_pago === 'tarjeta' || t.metodo_pago === '1').reduce((s, t) => s + t.total, 0) ?? 0;
 
   return { ventasHoy, ventasSemana, ventasMes, ticketPromedio, totalEfectivo, totalTarjeta, transaccionesHoy: countHoy, productosVendidosHoy };
 }
@@ -92,7 +92,13 @@ export async function getTransacciones(opts?: { desde?: string; hasta?: string; 
 
   if (opts?.desde) query = query.gte('fecha_hora', `${opts.desde}T00:00:00Z`);
   if (opts?.hasta) query = query.lte('fecha_hora', `${opts.hasta}T23:59:59Z`);
-  if (opts?.metodo) query = query.eq('metodo_pago', opts.metodo);
+  if (opts?.metodo) {
+    if (opts.metodo === 'efectivo') {
+      query = query.or('metodo_pago.eq.efectivo,metodo_pago.eq.0');
+    } else if (opts.metodo === 'tarjeta') {
+      query = query.or('metodo_pago.eq.tarjeta,metodo_pago.eq.1');
+    }
+  }
 
   const { data, error } = await query.order('fecha_hora', { ascending: false });
   if (error) throw error;

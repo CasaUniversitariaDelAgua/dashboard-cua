@@ -4,6 +4,7 @@ import MetricCard from '../components/MetricCard.astro';
 import FilterBar from '../components/FilterBar.astro';
 import { getCortesCaja } from '../lib/queries';
 import { getFilters } from '../lib/filters';
+import { formatCurrency } from '../lib/format';
 
 const filters = getFilters(Astro.url);
 const cortes = await getCortesCaja({ desde: filters.desde, hasta: filters.hasta, usuario: filters.usuario });
@@ -32,9 +33,9 @@ const totalGeneral = totalEfectivo + totalTarjeta;
     </form>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <MetricCard title="Total Efectivo" value={`$${totalEfectivo.toFixed(2)}`} icon="cash" />
-      <MetricCard title="Total Tarjeta" value={`$${totalTarjeta.toFixed(2)}`} icon="credit-card" />
-      <MetricCard title="Total General" value={`$${totalGeneral.toFixed(2)}`} icon="cash" />
+      <MetricCard title="Total Efectivo" value={`$${formatCurrency(totalEfectivo)}`} icon="cash" />
+      <MetricCard title="Total Tarjeta" value={`$${formatCurrency(totalTarjeta)}`} icon="credit-card" />
+      <MetricCard title="Total General" value={`$${formatCurrency(totalGeneral)}`} icon="cash" />
     </div>
 
     <div class="overflow-x-auto rounded-xl border border-outline bg-surface-elevated shadow-sm">
@@ -59,9 +60,9 @@ const totalGeneral = totalEfectivo + totalTarjeta;
               <td class="px-4 py-3 font-medium text-on-surface">{new Date(corte.fecha_inicio).toLocaleString('es-MX')}</td>
               <td class="px-4 py-3 text-on-surface-muted">{new Date(corte.fecha_fin).toLocaleString('es-MX')}</td>
               <td class="px-4 py-3 text-on-surface">{corte.usuario?.nombre ?? '—'}</td>
-              <td class="px-4 py-3 text-right font-medium text-success">${corte.total_efectivo.toFixed(2)}</td>
-              <td class="px-4 py-3 text-right font-medium text-info">${corte.total_tarjeta.toFixed(2)}</td>
-              <td class="px-4 py-3 text-right font-bold text-on-surface">${(corte.total_efectivo + corte.total_tarjeta).toFixed(2)}</td>
+              <td class="px-4 py-3 text-right font-medium text-success">${formatCurrency(corte.total_efectivo)}</td>
+              <td class="px-4 py-3 text-right font-medium text-info">${formatCurrency(corte.total_tarjeta)}</td>
+              <td class="px-4 py-3 text-right font-bold text-on-surface">${formatCurrency(corte.total_efectivo + corte.total_tarjeta)}</td>
               <td class="px-4 py-3 text-on-surface-muted max-w-48 truncate">{corte.observaciones ?? '—'}</td>
             </tr>
           ))}

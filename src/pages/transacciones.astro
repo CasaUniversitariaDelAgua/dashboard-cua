@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import FilterBar from '../components/FilterBar.astro';
 import { getTransacciones } from '../lib/queries';
 import { getFilters } from '../lib/filters';
+import { formatCurrency } from '../lib/format';
 
 const filters = getFilters(Astro.url);
 const transacciones = await getTransacciones({
@@ -12,6 +13,11 @@ const transacciones = await getTransacciones({
   busqueda: filters.busqueda,
 });
 const totalVentas = transacciones.reduce((s, t) => s + t.total, 0);
+
+function getMetodoPagoLabel(metodo: string) {
+  const m = String(metodo).toLowerCase().trim();
+  return m === '0' || m === 'efectivo' ? 'efectivo' : 'tarjeta';
+}
 ---
 
 <Layout title="Transacciones" currentPath="/transacciones" user={Astro.locals.user}>
@@ -45,11 +51,11 @@ const totalVentas = transacciones.reduce((s, t) => s + t.total, 0);
       </div>
       <div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm">
         <p class="text-sm font-semibold uppercase tracking-wider text-on-surface-muted">Total Ventas</p>
-        <p class="mt-2 text-3xl font-bold text-on-surface">${totalVentas.toFixed(2)}</p>
+        <p class="mt-2 text-3xl font-bold text-on-surface">${formatCurrency(totalVentas)}</p>
       </div>
       <div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm">
         <p class="text-sm font-semibold uppercase tracking-wider text-on-surface-muted">Ticket Promedio</p>
-        <p class="mt-2 text-3xl font-bold text-on-surface">${transacciones.length > 0 ? (totalVentas / transacciones.length).toFixed(2) : '0.00'}</p>
+        <p class="mt-2 text-3xl font-bold text-on-surface">${transacciones.length > 0 ? formatCurrency(totalVentas / transacciones.length) : '0.00'}</p>
       </div>
     </div>
 
@@ -74,16 +80,16 @@ const totalVentas = transacciones.reduce((s, t) => s + t.total, 0);
             <tr class="border-b border-outline transition-colors hover:bg-surface-soft/50">
               <td class="px-4 py-3 font-medium text-on-surface">{new Date(tx.fecha_hora).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}</td>
               <td class="px-4 py-3 text-on-surface">{tx.usuario?.nombre ?? '—'}</td>
-              <td class="px-4 py-3 text-right font-bold text-on-surface">${tx.total.toFixed(2)}</td>
+              <td class="px-4 py-3 text-right font-bold text-on-surface">${formatCurrency(tx.total)}</td>
               <td class="px-4 py-3">
                 <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
                   class:list={[
-                    tx.metodo_pago === 'efectivo' ? 'bg-success/10 text-success' : 'bg-info/10 text-info'
+                    getMetodoPagoLabel(tx.metodo_pago) === 'efectivo' ? 'bg-success/10 text-success' : 'bg-info/10 text-info'
                   ]}
-                >{tx.metodo_pago}</span>
+                >{getMetodoPagoLabel(tx.metodo_pago)}</span>
               </td>
-              <td class="px-4 py-3 text-right text-on-surface-muted">{tx.monto_recibido ? `$${tx.monto_recibido.toFixed(2)}` : '—'}</td>
-              <td class="px-4 py-3 text-right text-on-surface-muted">{tx.cambio ? `$${tx.cambio.toFixed(2)}` : '—'}</td>
+              <td class="px-4 py-3 text-right text-on-surface-muted">{tx.monto_recibido ? `$${formatCurrency(tx.monto_recibido)}` : '—'}</td>
+              <td class="px-4 py-3 text-right text-on-surface-muted">{tx.cambio ? `$${formatCurrency(tx.cambio)}` : '—'}</td>
               <td class="px-4 py-3 text-on-surface-muted max-w-40 truncate">
                 {tx.detalles?.map(d => `${d.cantidad}x ${d.producto?.nombre ?? ''}`).join(', ') ?? '—'}
               </td>
