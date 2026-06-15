@@ -1,23 +1,68 @@
 import { supabase } from './supabase';
 import type { CorteCaja, Transaccion, SouvenirVendido, VentaPorDia } from './types';
 
+// Obtiene los componentes de la fecha ajustados a la zona horaria de America/Mexico_City
+export function getMexicoCityDateParts(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(date);
+  const getPart = (type: string) => parts.find(p => p.type === type)!.value;
+  
+  return {
+    year: parseInt(getPart('year')),
+    month: parseInt(getPart('month')),
+    day: parseInt(getPart('day')),
+    hour: parseInt(getPart('hour')),
+    minute: parseInt(getPart('minute')),
+    second: parseInt(getPart('second'))
+  };
+}
+
+// Retorna el rango de inicio y fin en UTC correspondiente al día actual en Mexico City
+// Mexico City está en UTC-6 de forma permanente
+function getMexicoCityTodayRange() {
+  const { year, month, day } = getMexicoCityDateParts();
+  const start = new Date(Date.UTC(year, month - 1, day, 6, 0, 0)).toISOString();
+  const end = new Date(Date.UTC(year, month - 1, day + 1, 5, 59, 59, 999)).toISOString();
+  return { start, end };
+}
+
 async function getResumenPorRango(desde?: string, hasta?: string) {
-  const inicio = desde ? new Date(`${desde}T00:00:00Z`) : new Date(0);
-  const fin = hasta ? new Date(`${hasta}T23:59:59Z`) : new Date();
+  let inicio: string;
+  let fin: string;
 
-  const toISO = (d: Date) => d.toISOString();
+  if (desde) {
+    const [y, m, d] = desde.split('-').map(Number);
+    inicio = new Date(Date.UTC(y, m - 1, d, 6, 0, 0)).toISOString();
+  } else {
+    inicio = new Date(0).toISOString();
+  }
 
-  const [{ count: transacciones }, { data: ventas }, { data: detalles }] = await Promise.all([
-    supabase.from('transacciones').select('*', { count: 'exact', head: true })
-      .gte('fecha_hora', toISO(inicio)).lte('fecha_hora', toISO(fin)),
+  if (hasta) {
+    const [y, m, d] = hasta.split('-').map(Number);
+    fin = new Date(Date.UTC(y, m - 1, d + 1, 5, 59, 59, 999)).toISOString();
+  } else {
+    const { end } = getMexicoCityTodayRange();
+    fin = end;
+  }
+
+  const [{ data: ventas }, { data: detalles }] = await Promise.all([
     supabase.from('transacciones').select('total, metodo_pago')
-      .gte('fecha_hora', toISO(inicio)).lte('fecha_hora', toISO(fin)),
+      .gte('fecha_hora', inicio).lte('fecha_hora', fin),
     supabase.from('transaccion_detalles').select('cantidad, transaccion:transacciones!inner(fecha_hora)')
-      .gte('transaccion.fecha_hora', toISO(inicio)).lte('transaccion.fecha_hora', toISO(fin)),
+      .gte('transaccion.fecha_hora', inicio).lte('transaccion.fecha_hora', fin),
   ]);
 
   const total = ventas?.reduce((s, t) => s + t.total, 0) ?? 0;
-  const count = transacciones ?? 0;
+  const count = ventas?.length ?? 0;
   const totalEfectivo = ventas?.filter(t => t.metodo_pago === 'efectivo' || t.metodo_pago === '0').reduce((s, t) => s + t.total, 0) ?? 0;
   const totalTarjeta = ventas?.filter(t => t.metodo_pago === 'tarjeta' || t.metodo_pago === '1').reduce((s, t) => s + t.total, 0) ?? 0;
   const productosVendidos = detalles?.reduce((s, d) => s + d.cantidad, 0) ?? 0;
@@ -30,43 +75,47 @@ async function getResumenPorRango(desde?: string, hasta?: string) {
 }
 
 export async function getResumenGeneral(opts?: { desde?: string; hasta?: string }) {
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const inicioSemana = new Date(hoy);
-  inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
-  const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-
   if (opts?.desde || opts?.hasta) {
     return getResumenPorRango(opts.desde, opts.hasta);
   }
 
-  const toISO = (d: Date) => d.toISOString();
+  const { start: hoyInicio, end: hoyFin } = getMexicoCityTodayRange();
+
+  const mxParts = getMexicoCityDateParts();
+  
+  // Calcular inicioSemana en zona horaria local y convertir a UTC
+  const todayDate = new Date(Date.UTC(mxParts.year, mxParts.month - 1, mxParts.day, 6, 0, 0));
+  const dayOfWeek = todayDate.getUTCDay();
+  const inicioSemanaDate = new Date(todayDate);
+  inicioSemanaDate.setUTCDate(inicioSemanaDate.getUTCDate() - dayOfWeek);
+  const inicioSemana = inicioSemanaDate.toISOString();
+
+  // Calcular inicioMes en zona horaria local y convertir a UTC
+  const inicioMes = new Date(Date.UTC(mxParts.year, mxParts.month - 1, 1, 6, 0, 0)).toISOString();
 
   const [
-    { count: transaccionesHoy },
     ventasHoyData,
     ventasSemanaData,
     ventasMesData,
     detallesHoy,
   ] = await Promise.all([
-    supabase.from('transacciones').select('*', { count: 'exact', head: true }).gte('fecha_hora', toISO(hoy)),
-    supabase.from('transacciones').select('total').gte('fecha_hora', toISO(hoy)),
-    supabase.from('transacciones').select('total').gte('fecha_hora', toISO(inicioSemana)),
-    supabase.from('transacciones').select('total').gte('fecha_hora', toISO(inicioMes)),
+    supabase.from('transacciones').select('total, metodo_pago').gte('fecha_hora', hoyInicio).lte('fecha_hora', hoyFin),
+    supabase.from('transacciones').select('total').gte('fecha_hora', inicioSemana).lte('fecha_hora', hoyFin),
+    supabase.from('transacciones').select('total').gte('fecha_hora', inicioMes).lte('fecha_hora', hoyFin),
     supabase.from('transaccion_detalles').select('cantidad, transaccion:transacciones!inner(fecha_hora)')
-      .gte('transaccion.fecha_hora', toISO(hoy)),
+      .gte('transaccion.fecha_hora', hoyInicio).lte('transaccion.fecha_hora', hoyFin),
   ]);
 
-  const ventasHoy = ventasHoyData.data?.reduce((s, t) => s + t.total, 0) ?? 0;
+  const ventasHoyList = ventasHoyData.data ?? [];
+  const ventasHoy = ventasHoyList.reduce((s, t) => s + t.total, 0);
   const ventasSemana = ventasSemanaData.data?.reduce((s, t) => s + t.total, 0) ?? 0;
   const ventasMes = ventasMesData.data?.reduce((s, t) => s + t.total, 0) ?? 0;
-  const countHoy = transaccionesHoy ?? 0;
+  const countHoy = ventasHoyList.length;
   const ticketPromedio = countHoy > 0 ? ventasHoy / countHoy : 0;
   const productosVendidosHoy = detallesHoy.data?.reduce((s, d) => s + d.cantidad, 0) ?? 0;
 
-  const { data: ventas } = await supabase.from('transacciones').select('total, metodo_pago').gte('fecha_hora', toISO(hoy));
-  const totalEfectivo = ventas?.filter(t => t.metodo_pago === 'efectivo' || t.metodo_pago === '0').reduce((s, t) => s + t.total, 0) ?? 0;
-  const totalTarjeta = ventas?.filter(t => t.metodo_pago === 'tarjeta' || t.metodo_pago === '1').reduce((s, t) => s + t.total, 0) ?? 0;
+  const totalEfectivo = ventasHoyList.filter(t => t.metodo_pago === 'efectivo' || t.metodo_pago === '0').reduce((s, t) => s + t.total, 0);
+  const totalTarjeta = ventasHoyList.filter(t => t.metodo_pago === 'tarjeta' || t.metodo_pago === '1').reduce((s, t) => s + t.total, 0);
 
   return { ventasHoy, ventasSemana, ventasMes, ticketPromedio, totalEfectivo, totalTarjeta, transaccionesHoy: countHoy, productosVendidosHoy };
 }
@@ -76,8 +125,16 @@ export async function getCortesCaja(opts?: { desde?: string; hasta?: string; usu
     .from('cortes_caja')
     .select('*, usuario:usuarios(*)');
 
-  if (opts?.desde) query = query.gte('fecha_inicio', `${opts.desde}T00:00:00Z`);
-  if (opts?.hasta) query = query.lte('fecha_fin', `${opts.hasta}T23:59:59Z`);
+  if (opts?.desde) {
+    const [y, m, d] = opts.desde.split('-').map(Number);
+    const inicio = new Date(Date.UTC(y, m - 1, d, 6, 0, 0)).toISOString();
+    query = query.gte('fecha_inicio', inicio);
+  }
+  if (opts?.hasta) {
+    const [y, m, d] = opts.hasta.split('-').map(Number);
+    const fin = new Date(Date.UTC(y, m - 1, d + 1, 5, 59, 59, 999)).toISOString();
+    query = query.lte('fecha_fin', fin);
+  }
   if (opts?.usuario) query = query.eq('usuario_id', opts.usuario);
 
   const { data, error } = await query.order('fecha_inicio', { ascending: false });
@@ -90,8 +147,16 @@ export async function getTransacciones(opts?: { desde?: string; hasta?: string; 
     .from('transacciones')
     .select('*, usuario:usuarios(*), detalles:transaccion_detalles(*, producto:productos(*))');
 
-  if (opts?.desde) query = query.gte('fecha_hora', `${opts.desde}T00:00:00Z`);
-  if (opts?.hasta) query = query.lte('fecha_hora', `${opts.hasta}T23:59:59Z`);
+  if (opts?.desde) {
+    const [y, m, d] = opts.desde.split('-').map(Number);
+    const inicio = new Date(Date.UTC(y, m - 1, d, 6, 0, 0)).toISOString();
+    query = query.gte('fecha_hora', inicio);
+  }
+  if (opts?.hasta) {
+    const [y, m, d] = opts.hasta.split('-').map(Number);
+    const fin = new Date(Date.UTC(y, m - 1, d + 1, 5, 59, 59, 999)).toISOString();
+    query = query.lte('fecha_hora', fin);
+  }
   if (opts?.metodo) {
     if (opts.metodo === 'efectivo') {
       query = query.or('metodo_pago.eq.efectivo,metodo_pago.eq.0');
@@ -126,28 +191,35 @@ export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; m
   const añoVal = (opts?.año && opts.año !== 'todos') ? parseInt(String(opts.año)) : undefined;
 
   if (opts?.desde) {
-    query = query.gte('fecha_hora', `${opts.desde}T00:00:00Z`);
+    const [y, m, d] = opts.desde.split('-').map(Number);
+    const inicio = new Date(Date.UTC(y, m - 1, d, 6, 0, 0)).toISOString();
+    query = query.gte('fecha_hora', inicio);
   }
   if (opts?.hasta) {
-    query = query.lte('fecha_hora', `${opts.hasta}T23:59:59Z`);
+    const [y, m, d] = opts.hasta.split('-').map(Number);
+    const fin = new Date(Date.UTC(y, m - 1, d + 1, 5, 59, 59, 999)).toISOString();
+    query = query.lte('fecha_hora', fin);
   }
 
   if (!opts?.desde && !opts?.hasta) {
     if (añoVal !== undefined) {
       if (mesVal !== undefined) {
-        const inicio = new Date(añoVal, mesVal - 1, 1);
-        const fin = new Date(añoVal, mesVal, 0, 23, 59, 59);
-        query = query.gte('fecha_hora', inicio.toISOString()).lte('fecha_hora', fin.toISOString());
+        const ultimoDia = new Date(Date.UTC(añoVal, mesVal, 0)).getUTCDate();
+        const inicioStr = new Date(Date.UTC(añoVal, mesVal - 1, 1, 6, 0, 0)).toISOString();
+        const finStr = new Date(Date.UTC(añoVal, mesVal - 1, ultimoDia + 1, 5, 59, 59, 999)).toISOString();
+        query = query.gte('fecha_hora', inicioStr).lte('fecha_hora', finStr);
       } else {
-        const inicio = new Date(añoVal, 0, 1);
-        const fin = new Date(añoVal, 11, 31, 23, 59, 59);
-        query = query.gte('fecha_hora', inicio.toISOString()).lte('fecha_hora', fin.toISOString());
+        const inicioStr = new Date(Date.UTC(añoVal, 0, 1, 6, 0, 0)).toISOString();
+        const finStr = new Date(Date.UTC(añoVal, 11, 31 + 1, 5, 59, 59, 999)).toISOString();
+        query = query.gte('fecha_hora', inicioStr).lte('fecha_hora', finStr);
       }
     } else if (mesVal !== undefined) {
-      const ahora = new Date();
-      const inicio = new Date(ahora.getFullYear(), mesVal - 1, 1);
-      const fin = new Date(ahora.getFullYear(), mesVal, 0, 23, 59, 59);
-      query = query.gte('fecha_hora', inicio.toISOString()).lte('fecha_hora', fin.toISOString());
+      const mxParts = getMexicoCityDateParts();
+      const añoUso = mxParts.year;
+      const ultimoDia = new Date(Date.UTC(añoUso, mesVal, 0)).getUTCDate();
+      const inicioStr = new Date(Date.UTC(añoUso, mesVal - 1, 1, 6, 0, 0)).toISOString();
+      const finStr = new Date(Date.UTC(añoUso, mesVal - 1, ultimoDia + 1, 5, 59, 59, 999)).toISOString();
+      query = query.gte('fecha_hora', inicioStr).lte('fecha_hora', finStr);
     }
   }
 
@@ -156,7 +228,10 @@ export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; m
 
   const mapa = new Map<string, { total: number; transacciones: number; visitantes: number }>();
   for (const t of data ?? []) {
-    const dia = t.fecha_hora.split('T')[0];
+    const txDate = new Date(t.fecha_hora);
+    const parts = getMexicoCityDateParts(txDate);
+    const dia = `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
+    
     const actual = mapa.get(dia) ?? { total: 0, transacciones: 0, visitantes: 0 };
     actual.total += t.total;
     actual.transacciones += 1;
@@ -181,19 +256,18 @@ export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; m
 export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: string; limite?: number }) {
   let query = supabase
     .from('transaccion_detalles')
-    .select('cantidad, precio_unitario, producto:productos!inner(nombre, tipo), transaccion_id')
+    .select('cantidad, precio_unitario, producto:productos!inner(nombre, tipo), transaccion:transacciones!inner(fecha_hora)')
     .eq('producto.tipo', 'souvenir');
 
-  if (opts?.desde || opts?.hasta) {
-    let txQuery = supabase.from('transacciones').select('id');
-    if (opts?.desde) txQuery = txQuery.gte('fecha_hora', `${opts.desde}T00:00:00Z`);
-    if (opts?.hasta) txQuery = txQuery.lte('fecha_hora', `${opts.hasta}T23:59:59Z`);
-    const { data: txIds } = await txQuery;
-    if (txIds && txIds.length > 0) {
-      query = query.in('transaccion_id', txIds.map(t => t.id));
-    } else {
-      return [];
-    }
+  if (opts?.desde) {
+    const [y, m, d] = opts.desde.split('-').map(Number);
+    const inicio = new Date(Date.UTC(y, m - 1, d, 6, 0, 0)).toISOString();
+    query = query.gte('transaccion.fecha_hora', inicio);
+  }
+  if (opts?.hasta) {
+    const [y, m, d] = opts.hasta.split('-').map(Number);
+    const fin = new Date(Date.UTC(y, m - 1, d + 1, 5, 59, 59, 999)).toISOString();
+    query = query.lte('transaccion.fecha_hora', fin);
   }
 
   const { data, error } = await query;
@@ -218,19 +292,15 @@ export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: s
 }
 
 export async function getTotalVisitantes(opts?: { mes?: string; año?: string }) {
-  const ahora = new Date();
-  const mesActual = (opts?.mes && opts.mes !== 'todos') ? parseInt(opts.mes) : undefined;
-  const añoActual = (opts?.año && opts.año !== 'todos') ? parseInt(opts.año) : undefined;
-
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  const { start: hoyInicio, end: hoyFin } = getMexicoCityTodayRange();
 
   // 1. Visitantes Hoy
   const { data: hoyData } = await supabase
     .from('transaccion_detalles')
     .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(tipo)')
     .eq('producto.tipo', 'entrada')
-    .gte('transaccion.fecha_hora', hoy.toISOString());
+    .gte('transaccion.fecha_hora', hoyInicio)
+    .lte('transaccion.fecha_hora', hoyFin);
 
   const visitantesHoy = (hoyData ?? []).reduce((sum, item) => sum + item.cantidad, 0);
 
@@ -242,27 +312,33 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
 
   const visitantesAcumulado = (acumuladoData ?? []).reduce((sum, item) => sum + item.cantidad, 0);
 
-  // 3. Visitantes Período (si hay filtros, de lo contrario es igual al histórico)
+  // 3. Visitantes Período
   let periodQuery = supabase
     .from('transaccion_detalles')
     .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(tipo)')
     .eq('producto.tipo', 'entrada');
-  
+
+  const mesActual = (opts?.mes && opts.mes !== 'todos') ? parseInt(opts.mes) : undefined;
+  const añoActual = (opts?.año && opts.año !== 'todos') ? parseInt(opts.año) : undefined;
+
   if (añoActual !== undefined) {
     if (mesActual !== undefined) {
-      const inicioMes = new Date(añoActual, mesActual - 1, 1);
-      const finMes = new Date(añoActual, mesActual, 0, 23, 59, 59);
-      periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioMes.toISOString()).lte('transaccion.fecha_hora', finMes.toISOString());
+      const ultimoDia = new Date(Date.UTC(añoActual, mesActual, 0)).getUTCDate();
+      const inicioMes = new Date(Date.UTC(añoActual, mesActual - 1, 1, 6, 0, 0)).toISOString();
+      const finMes = new Date(Date.UTC(añoActual, mesActual - 1, ultimoDia + 1, 5, 59, 59, 999)).toISOString();
+      periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioMes).lte('transaccion.fecha_hora', finMes);
     } else {
-      const inicioAño = new Date(añoActual, 0, 1);
-      const finAño = new Date(añoActual, 11, 31, 23, 59, 59);
-      periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioAño.toISOString()).lte('transaccion.fecha_hora', finAño.toISOString());
+      const inicioAño = new Date(Date.UTC(añoActual, 0, 1, 6, 0, 0)).toISOString();
+      const finAño = new Date(Date.UTC(añoActual, 11, 31 + 1, 5, 59, 59, 999)).toISOString();
+      periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioAño).lte('transaccion.fecha_hora', finAño);
     }
   } else if (mesActual !== undefined) {
-    const añoUso = ahora.getFullYear();
-    const inicioMes = new Date(añoUso, mesActual - 1, 1);
-    const finMes = new Date(añoUso, mesActual, 0, 23, 59, 59);
-    periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioMes.toISOString()).lte('transaccion.fecha_hora', finMes.toISOString());
+    const mxParts = getMexicoCityDateParts();
+    const añoUso = mxParts.year;
+    const ultimoDia = new Date(Date.UTC(añoUso, mesActual, 0)).getUTCDate();
+    const inicioMes = new Date(Date.UTC(añoUso, mesActual - 1, 1, 6, 0, 0)).toISOString();
+    const finMes = new Date(Date.UTC(añoUso, mesActual - 1, ultimoDia + 1, 5, 59, 59, 999)).toISOString();
+    periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioMes).lte('transaccion.fecha_hora', finMes);
   }
 
   const { data: mesData } = await periodQuery;
@@ -273,7 +349,9 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
     visitantesPeriodo += item.cantidad;
     const trans = item.transaccion as any;
     if (trans && !Array.isArray(trans) && trans.fecha_hora) {
-      const dia = trans.fecha_hora.split('T')[0];
+      const txDate = new Date(trans.fecha_hora);
+      const parts = getMexicoCityDateParts(txDate);
+      const dia = `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
       diasUnicos.add(dia);
     }
   }
