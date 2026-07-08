@@ -1,0 +1,121 @@
+---
+export interface Props {
+  data: Array<{ nombre: string; cantidad: number }>;
+  title?: string;
+}
+const { data = [], title } = Astro.props;
+
+// Filter out items with 0 quantity just in case
+const filteredData = data.filter(d => d.cantidad > 0);
+const totalVisitantes = filteredData.reduce((sum, d) => sum + d.cantidad, 0);
+
+const chartId = "visitor-type-chart-" + Math.random().toString(36).slice(2, 8);
+---
+
+<div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm flex flex-col h-full">
+  {title && <h3 class="mb-4 text-lg font-bold text-on-surface">{title}</h3>}
+  
+  {filteredData.length === 0 ? (
+    <div class="flex flex-1 items-center justify-center py-12 text-center">
+      <div class="space-y-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-on-surface-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <p class="text-sm font-semibold text-on-surface-muted">No hay datos de distribución</p>
+        <p class="text-xs text-on-surface-muted/75">No se registraron entradas en este período</p>
+      </div>
+    </div>
+  ) : (
+    <div class="flex flex-1 flex-col justify-between">
+      <div class="relative h-60 w-full mb-6">
+        <canvas
+          id={chartId}
+          data-chart-data={JSON.stringify(filteredData)}
+          class="visitor-type-chart h-full w-full"></canvas>
+      </div>
+
+      <!-- Leyenda personalizada con porcentajes y cantidades -->
+      <div class="space-y-2.5 max-h-40 overflow-y-auto pr-1">
+        {filteredData.map((d, index) => {
+          const pct = ((d.cantidad / totalVisitantes) * 100).toFixed(1);
+          // Paleta de colores consistente
+          const colors = ["#f09830", "#00a898", "#0078a8", "#f8e088", "#9f7aea", "#06b6d4", "#a0aec0"];
+          const color = colors[index % colors.length];
+          return (
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="h-3 w-3 shrink-0 rounded-full" style={`background-color: ${color};`}></span>
+                <span class="truncate font-medium text-on-surface">{d.nombre}</span>
+              </div>
+              <div class="flex items-center gap-2 ml-4 shrink-0 font-semibold">
+                <span class="text-on-surface">{d.cantidad.toLocaleString()}</span>
+                <span class="text-on-surface-muted/80 text-[10px] bg-outline/20 px-1.5 py-0.5 rounded">{pct}%</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  import { Chart, registerables } from "chart.js";
+  Chart.register(...registerables);
+
+  const canvasElements = document.querySelectorAll(
+    ".visitor-type-chart",
+  ) as NodeListOf<HTMLCanvasElement>;
+
+  canvasElements.forEach((canvas) => {
+    const rawData = canvas.dataset.chartData;
+    if (!rawData) return;
+
+    try {
+      const data = JSON.parse(rawData);
+
+      const colors = ["#f09830", "#00a898", "#0078a8", "#f8e088", "#9f7aea", "#06b6d4", "#a0aec0"];
+      const backgroundColors = data.map((_: any, i: number) => colors[i % colors.length]);
+
+      new Chart(canvas, {
+        type: "doughnut",
+        data: {
+          labels: data.map((d: any) => d.nombre),
+          datasets: [
+            {
+              data: data.map((d: any) => d.cantidad),
+              backgroundColor: backgroundColors,
+              borderColor: "transparent",
+              borderWidth: 0,
+              hoverOffset: 4
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false // Ocultamos la leyenda por defecto de Chart.js para usar la nuestra
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const dataset = context.dataset;
+                  const total = dataset.data.reduce((acc: number, val: any) => acc + val, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return ` ${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          cutout: "70%" // Estilo dona moderno
+        },
+      });
+    } catch (e) {
+      console.error("Error parsing visitor type chart data:", e);
+    }
+  });
+</script>

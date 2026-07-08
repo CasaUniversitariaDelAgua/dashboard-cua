@@ -32,32 +32,48 @@ const navItems = [
     <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon.src} />
     <link rel="icon" type="image/png" sizes="192x192" href={android192.src} />
     <link rel="icon" type="image/png" sizes="512x512" href={android512.src} />
+    <script is:inline>
+      // Initialize desktop sidebar state before rendering to prevent layout flash
+      if (localStorage.getItem("sidebar-collapsed") === "true" && window.innerWidth >= 768) {
+        document.documentElement.classList.add("init-sidebar-collapsed");
+      }
+    </script>
   </head>
-  <body class="min-h-screen bg-background font-sans text-on-background">
+  <body class="min-h-screen bg-background font-archer text-on-background">
     <div class="flex min-h-screen">
-      <!-- Sidebar desktop (static) -->
+      <!-- Sidebar desktop (collapsible) -->
       <aside
-        class="hidden md:flex md:w-64 md:flex-col md:shrink-0"
+        id="sidebar-desktop"
+        class="hidden md:flex md:w-64 md:flex-col md:shrink-0 transition-all duration-300 ease-in-out"
         style="background: rgba(0,0,0,0.70); backdrop-filter: blur(12px); border-right: 1px solid rgba(255,255,255,0.10);"
       >
-        <div class="flex h-16 items-center gap-3 px-4 border-b border-white/10">
-          <Image src={logo} alt="Logo CUA" width={32} height={32} />
-          <span class="text-sm font-semibold text-on-shell">Dashboard CUA</span>
+        <div class="flex h-16 items-center gap-3 px-4 border-b border-white/10 overflow-hidden">
+          <div class="shrink-0">
+            <Image src={logo} alt="Logo CUA" width={32} height={32} />
+          </div>
+          <span class="text-sm font-semibold text-on-shell sidebar-text transition-opacity duration-300 whitespace-nowrap">Dashboard CUA</span>
         </div>
         <nav class="flex flex-col gap-1 p-3">
           {
             navItems.map((item) => (
               <a
                 href={item.href}
-                class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition-colors duration-150"
+                class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition-colors duration-150 relative group"
                 class:list={[
                   currentPath === item.href
                     ? "bg-primary text-on-primary"
                     : "text-white/70 hover:bg-white/10 hover:text-white",
                 ]}
               >
-                <Icon name={item.icon} size={18} />
-                <span>{item.label}</span>
+                <div class="shrink-0 flex items-center justify-center w-5 h-5">
+                  <Icon name={item.icon} size={18} />
+                </div>
+                <span class="sidebar-text transition-opacity duration-300 whitespace-nowrap">{item.label}</span>
+                
+                <!-- Tooltip for collapsed state -->
+                <span class="sidebar-tooltip absolute left-14 hidden bg-black/90 text-white text-xs px-2.5 py-1.5 rounded-md shadow-md whitespace-nowrap z-50 border border-white/10 pointer-events-none">
+                  {item.label}
+                </span>
               </a>
             ))
           }
@@ -109,17 +125,10 @@ const navItems = [
         >
           <button
             id="menu-toggle"
-            class="flex h-10 w-10 items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white md:hidden"
+            class="flex h-10 w-10 items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white cursor-pointer"
           >
             <Icon name="menu" size={20} />
           </button>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-white/70"
-              >CUA Dashboard</span
-            >
-            <span class="text-xs text-white/40">/</span>
-            <span class="text-sm font-semibold text-white">{title}</span>
-          </div>
           <div class="ml-auto flex items-center gap-3">
             {
               user && (
@@ -144,24 +153,105 @@ const navItems = [
 
     <script>
       const toggle = document.getElementById("menu-toggle");
-      const sidebar = document.getElementById("sidebar-mobile");
+      const sidebarMobile = document.getElementById("sidebar-mobile");
+      const sidebarDesktop = document.getElementById("sidebar-desktop");
       const overlay = document.getElementById("sidebar-overlay");
 
-      if (toggle && sidebar && overlay) {
-        toggle.addEventListener("click", () => {
-          const isOpen = !sidebar.classList.contains("-translate-x-full");
-          sidebar.classList.toggle("-translate-x-full", isOpen);
-          overlay.classList.toggle("opacity-0", isOpen);
-          overlay.classList.toggle("pointer-events-none", isOpen);
-          document.body.classList.toggle("overflow-hidden", !isOpen);
-        });
+      // Sync state on page load if initialized before render
+      if (sidebarDesktop && document.documentElement.classList.contains("init-sidebar-collapsed")) {
+        sidebarDesktop.classList.add("collapsed");
+      }
 
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          const isMobile = window.innerWidth < 768;
+
+          if (isMobile) {
+            if (sidebarMobile && overlay) {
+              const isOpen = !sidebarMobile.classList.contains("-translate-x-full");
+              sidebarMobile.classList.toggle("-translate-x-full", isOpen);
+              overlay.classList.toggle("opacity-0", isOpen);
+              overlay.classList.toggle("pointer-events-none", isOpen);
+              document.body.classList.toggle("overflow-hidden", !isOpen);
+            }
+          } else {
+            if (sidebarDesktop) {
+              // Clear init class to let dynamic class take over
+              document.documentElement.classList.remove("init-sidebar-collapsed");
+              const isCollapsed = sidebarDesktop.classList.toggle("collapsed");
+              localStorage.setItem("sidebar-collapsed", isCollapsed ? "true" : "false");
+            }
+          }
+        });
+      }
+
+      if (overlay && sidebarMobile) {
         overlay.addEventListener("click", () => {
-          sidebar.classList.add("-translate-x-full");
+          sidebarMobile.classList.add("-translate-x-full");
           overlay.classList.add("opacity-0", "pointer-events-none");
           document.body.classList.remove("overflow-hidden");
         });
       }
     </script>
+
+    <style is:global>
+      /* Collapsed desktop sidebar styling rules */
+      #sidebar-desktop.collapsed {
+        width: 4rem !important; /* 64px (w-16) */
+      }
+      #sidebar-desktop.collapsed .sidebar-text {
+        display: none !important;
+      }
+      #sidebar-desktop.collapsed .px-4 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+      #sidebar-desktop.collapsed nav {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        align-items: center !important;
+      }
+      #sidebar-desktop.collapsed nav a {
+        justify-content: center !important;
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        padding: 0 !important;
+      }
+      
+      /* Tooltip visibility rule in collapsed state */
+      .sidebar-tooltip {
+        display: none;
+      }
+      #sidebar-desktop.collapsed .sidebar-tooltip {
+        display: none;
+      }
+      /* Show tooltip on hover only when collapsed */
+      #sidebar-desktop.collapsed nav a:hover .sidebar-tooltip {
+        display: block !important;
+      }
+
+      /* Pre-render styles to avoid Layout Shift */
+      .init-sidebar-collapsed #sidebar-desktop {
+        width: 4rem !important;
+      }
+      .init-sidebar-collapsed #sidebar-desktop .sidebar-text {
+        display: none !important;
+      }
+      .init-sidebar-collapsed #sidebar-desktop .px-4 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+      .init-sidebar-collapsed #sidebar-desktop nav {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        align-items: center !important;
+      }
+      .init-sidebar-collapsed #sidebar-desktop nav a {
+        justify-content: center !important;
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        padding: 0 !important;
+      }
+    </style>
   </body>
 </html>

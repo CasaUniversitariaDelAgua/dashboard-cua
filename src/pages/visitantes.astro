@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import MetricCard from "../components/MetricCard.astro";
 import FilterBar from "../components/FilterBar.astro";
 import VisitorChart from "../components/VisitorChart.astro";
+import VisitorTypeChart from "../components/VisitorTypeChart.astro";
 import { getTotalVisitantes, getVentasPorDia } from "../lib/queries";
 import { getFilters } from "../lib/filters";
 
@@ -99,9 +100,19 @@ const tituloPeriodo =
       />
     </div>
 
-    <VisitorChart
-      data={ventasPorDia}
-      title={`Actividad Diaria (${tituloPeriodo})`}
-    />
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="lg:col-span-2">
+        <VisitorChart
+          data={ventasPorDia}
+          title={`Actividad Diaria (${tituloPeriodo})`}
+        />
+      </div>
+      <div>
+        <VisitorTypeChart
+          data={visitantes.desglose}
+          title={`Distribución de Entradas (${tituloPeriodo})`}
+        />
+      </div>
+    </div>
   </div>
 </Layout>

@@ -315,7 +315,7 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
   // 3. Visitantes Período
   let periodQuery = supabase
     .from('transaccion_detalles')
-    .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(tipo)')
+    .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(nombre, tipo)')
     .eq('producto.tipo', 'entrada');
 
   const mesActual = (opts?.mes && opts.mes !== 'todos') ? parseInt(opts.mes) : undefined;
@@ -345,6 +345,8 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
 
   let visitantesPeriodo = 0;
   const diasUnicos = new Set<string>();
+  const tiposEntrada: Record<string, number> = {};
+
   for (const item of mesData ?? []) {
     visitantesPeriodo += item.cantidad;
     const trans = item.transaccion as any;
@@ -354,6 +356,12 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
       const dia = `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
       diasUnicos.add(dia);
     }
+
+    const prod = item.producto as any;
+    if (prod && !Array.isArray(prod) && prod.nombre) {
+      const nombre = prod.nombre;
+      tiposEntrada[nombre] = (tiposEntrada[nombre] || 0) + item.cantidad;
+    }
   }
 
   return {
@@ -362,5 +370,8 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
     visitantes_acumulado: visitantesAcumulado,
     dias_con_ventas: diasUnicos.size,
     promedio_por_dia: diasUnicos.size > 0 ? Math.round(visitantesPeriodo / diasUnicos.size) : 0,
+    desglose: Object.entries(tiposEntrada)
+      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad),
   };
 }
