@@ -1,11 +1,6 @@
 ---
 import "../styles/global.css";
 import Icon from "../components/Icon.astro";
-import favicon16 from "../assets/favicon/favicon-16x16.png";
-import favicon32 from "../assets/favicon/favicon-32x32.png";
-import appleTouchIcon from "../assets/favicon/apple-touch-icon.png";
-import android192 from "../assets/favicon/android-chrome-192x192.png";
-import android512 from "../assets/favicon/android-chrome-512x512.png";
 import { Image } from "astro:assets";
 import logo from "../assets/icono-favicon.webp";
 import type { LayoutProps } from "../lib/types";
@@ -27,11 +22,12 @@ const navItems = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Dashboard CUA</title>
-    <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
-    <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
-    <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon.src} />
-    <link rel="icon" type="image/png" sizes="192x192" href={android192.src} />
-    <link rel="icon" type="image/png" sizes="512x512" href={android512.src} />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <script is:inline>
       // Initialize desktop sidebar state before rendering to prevent layout flash
       if (localStorage.getItem("sidebar-collapsed") === "true" && window.innerWidth >= 768) {
