@@ -193,69 +193,106 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
 
       <!-- Thank you + QR section (hidden initially) -->
       <div id="gracias" class="hidden">
-        <div class="bg-white/90 backdrop-blur-md border border-outline/65 p-8 md:p-12 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center max-w-xl mx-auto">
+        <div class="bg-white/95 backdrop-blur-md border border-outline/65 p-6 md:p-10 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.03)] max-w-5xl mx-auto flex flex-col md:flex-row gap-8 items-stretch">
           
-          <!-- Nuty Mascot Celebration -->
-          <div class="mb-6 flex justify-center">
-            <div class="relative">
-              <Image src={nutyFeliz} alt="Nuty Feliz" width={96} height={96} class="h-24 w-24 object-contain filter drop-shadow-md animate-bounce-subtle" />
-              <!-- Small check badge overlapping Nuty -->
-              <div class="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-success text-white shadow-md border-2 border-white">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+          <!-- Left side: Thank you + Mascot + Countdown -->
+          <div class="flex-1 flex flex-col justify-between items-center text-center p-4">
+            <div class="my-auto">
+              <!-- Nuty Mascot Celebration -->
+              <div class="mb-5 flex justify-center">
+                <div class="relative">
+                  <Image src={nutyFeliz} alt="Nuty Feliz" width={112} height={112} class="h-28 w-28 object-contain filter drop-shadow-md animate-bounce-subtle" />
+                  <!-- Small check badge overlapping Nuty -->
+                  <div class="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-success text-white shadow-md border-2 border-white">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              <h2 class="text-3xl font-black text-on-surface md:text-4xl uppercase tracking-tight">¡Muchas gracias!</h2>
+              <p class="mt-3 text-base font-semibold text-on-surface-muted max-w-sm mx-auto">Tu opinión es extremadamente valiosa para nosotros.</p>
+            </div>
+
+            <!-- Auto Reset Countdown -->
+            <div class="w-full mt-8 pt-6 border-t border-outline/50 max-w-sm">
+              <p class="text-xs text-on-surface-muted font-semibold flex items-center justify-center gap-1.5">
+                <span>La pantalla se reiniciará en</span>
+                <span id="countdown-num" class="font-extrabold text-primary text-sm bg-primary/10 px-2 py-0.5 rounded">120</span>
+                <span>segundos...</span>
+              </p>
+              <div class="mt-3 w-full bg-outline/40 h-2.5 rounded-full overflow-hidden">
+                <div id="countdown-bar" class="h-full bg-primary transition-all duration-100 ease-linear" style="width: 100%;"></div>
+              </div>
+              <div class="mt-5 flex justify-center">
+                <button id="btn-reiniciar-ahora" type="button" class="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-strong rounded-xl shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95">
+                  Reiniciar ahora
+                </button>
               </div>
             </div>
           </div>
-          
-          <h2 class="text-2xl font-black text-on-surface md:text-3xl uppercase tracking-tight">¡Muchas gracias!</h2>
-          <p class="mt-2 text-sm font-medium text-on-surface-muted md:text-base">Tu opinión es extremadamente valiosa para nosotros.</p>
 
-          <!-- Ticket-styled TripAdvisor voucher -->
-          <div class="mx-auto mt-8 max-w-sm rounded-2xl border border-dashed border-primary/40 bg-gradient-to-b from-primary/5 to-transparent p-6 md:p-8 shadow-inner relative overflow-hidden">
+          <!-- Vertical separator line for desktop -->
+          <div class="hidden md:block w-[1px] bg-outline/50 my-4"></div>
+
+          <!-- Right side: Ticket-styled TripAdvisor voucher -->
+          <div class="flex-[1.35] rounded-3xl border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-transparent p-6 md:p-8 shadow-inner relative overflow-hidden flex flex-col justify-center">
             <!-- Ticket cutouts -->
-            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-3 bg-[#fcfaf7] rounded-r-full border-y border-r border-dashed border-primary/40"></div>
-            <div class="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-3 bg-[#fcfaf7] rounded-l-full border-y border-l border-dashed border-primary/40"></div>
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-r-full border-y border-r border-dashed border-primary/30"></div>
+            <div class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-l-full border-y border-l border-dashed border-primary/30"></div>
             
-            <p class="text-sm font-extrabold text-primary md:text-base uppercase tracking-wide">
-              ⭐ ¡Califícanos en TripAdvisor! ⭐
-            </p>
-            <p class="text-[11px] font-bold text-on-surface-muted mt-1">
-              ¡Muestra tu opinión al personal y gana un Sticker oficial!
-            </p>
-            <div class="mt-4 flex justify-center">
-              <div class="p-3 bg-white rounded-xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105">
-                <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://www.tripadvisor.com"
-                  alt="Código QR de Tripadvisor"
-                  width="150"
-                  height="150"
-                  class="h-36 w-36 rounded-lg"
-                  loading="lazy"
-                />
+            <div class="text-center mb-6">
+              <p class="text-sm font-black text-primary md:text-base uppercase tracking-wider">
+                ⭐ ¡Califícanos en TripAdvisor! ⭐
+              </p>
+              <p class="text-xs md:text-sm font-black text-on-surface/90 mt-1.5 leading-snug">
+                ¡Muestra tu opinión al personal y gana un Sticker oficial!
+              </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <!-- QR Code Column -->
+              <div class="flex flex-col items-center gap-2 shrink-0">
+                <div class="p-3 bg-white rounded-2xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105 shrink-0">
+                  <img
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fwww.tripadvisor.com.mx%2FAttraction_Review-g249850-d33861180-Reviews-Casa_Universitaria_del_Agua_UJAT-Villahermosa_Central_Mexico_and_Gulf_Coast.html"
+                    alt="Código QR de Tripadvisor"
+                    width="150"
+                    height="150"
+                    class="h-32 w-32 rounded-lg shrink-0"
+                    loading="lazy"
+                  />
+                </div>
+                <p class="text-[9px] font-bold text-on-surface-muted text-center max-w-[130px] shrink-0">
+                  Escanea el código QR en tu dispositivo
+                </p>
+              </div>
+
+              <!-- Separator -->
+              <div class="hidden sm:block h-28 w-[1px] bg-primary/20 shrink-0"></div>
+
+              <!-- TripAdvisor Widget Column -->
+              <div class="flex flex-col items-center gap-2 shrink-0">
+                <div class="p-3 bg-white rounded-2xl shadow-md border border-outline/50 flex items-center justify-center min-w-[200px] min-h-[156px] shrink-0">
+                  <div id="TA_cdswritereviewlg861" class="TA_cdswritereviewlg w-full shrink-0">
+                    <ul id="P7sTAB54Ork" class="TA_links DsCyy3GjOoI">
+                      <li id="49q8LNgDCLo0" class="8q1JOnM0">
+                        <a target="_blank" href="https://www.tripadvisor.com.mx/Attraction_Review-g249850-d33861180-Reviews-Casa_Universitaria_del_Agua_UJAT-Villahermosa_Central_Mexico_and_Gulf_Coast.html">
+                          <img src="https://static.tacdn.com/img2/brand_refresh/Tripadvisor_lockup_horizontal_secondary_registered.svg" alt="TripAdvisor" class="mx-auto" />
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                  <script async src="https://www.jscache.com/wejs?wtype=cdswritereviewlg&uniq=861&locationId=33861180&lang=es_MX&lang=es_MX&display_version=2" data-loadtrk onload="this.loadtrk=true"></script>
+                </div>
+                <p class="text-[9px] font-bold text-on-surface-muted text-center max-w-[130px] shrink-0">
+                  O haz clic en el logo para abrir el sitio
+                </p>
               </div>
             </div>
-            <p class="mt-3 text-[10px] font-semibold text-on-surface-muted">
-              Escanea el código QR para abrir el sitio.
-            </p>
           </div>
-
-          <!-- Auto Reset Countdown (Kiosk mode) -->
-          <div class="mt-10 pt-6 border-t border-outline/50 max-w-md mx-auto">
-            <p class="text-xs text-on-surface-muted font-semibold flex items-center justify-center gap-1.5">
-              <span>La pantalla se reiniciará en</span>
-              <span id="countdown-num" class="font-extrabold text-primary text-sm bg-primary/10 px-2 py-0.5 rounded">15</span>
-              <span>segundos...</span>
-            </p>
-            <div class="mt-3.5 w-full bg-outline/40 h-2 rounded-full overflow-hidden">
-              <div id="countdown-bar" class="h-full bg-primary transition-all duration-100 ease-linear" style="width: 100%;"></div>
-            </div>
-            <div class="mt-5 flex justify-center gap-3">
-              <button id="btn-reiniciar-ahora" type="button" class="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-strong rounded-xl shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95">
-                Reiniciar ahora
-              </button>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>

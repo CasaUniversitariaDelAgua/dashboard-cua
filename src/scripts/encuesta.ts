@@ -15,7 +15,7 @@ const errorMsg = document.getElementById("error-msg")!;
 let selectedEmoji: string | null = null;
 let selectedScale: string | null = null;
 let countdownInterval: number | null = null;
-const RESET_TIME = 15; // segundos para resetear la pantalla en modo kiosco
+const RESET_TIME = 120; // segundos para resetear la pantalla en modo kiosco
 
 // Estilos para emojis cuando están seleccionados
 const emojiStyles: Record<string, string[]> = {
