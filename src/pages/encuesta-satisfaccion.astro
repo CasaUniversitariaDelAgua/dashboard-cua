@@ -193,15 +193,15 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
 
       <!-- Thank you + QR section (hidden initially) -->
       <div id="gracias" class="hidden">
-        <div class="bg-white/95 backdrop-blur-md border border-outline/65 p-6 md:p-10 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.03)] max-w-5xl mx-auto flex flex-col md:flex-row gap-8 items-stretch">
+        <div class="bg-white/95 backdrop-blur-md border border-outline/65 p-6 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.03)] max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-6 items-stretch">
           
           <!-- Left side: Thank you + Mascot + Countdown -->
-          <div class="flex-1 flex flex-col justify-between items-center text-center p-4">
+          <div class="flex-[0.75] md:max-w-[280px] flex flex-col justify-between items-center text-center p-3">
             <div class="my-auto">
               <!-- Nuty Mascot Celebration -->
-              <div class="mb-5 flex justify-center">
+              <div class="mb-4 flex justify-center">
                 <div class="relative">
-                  <Image src={nutyFeliz} alt="Nuty Feliz" width={112} height={112} class="h-28 w-28 object-contain filter drop-shadow-md animate-bounce-subtle" />
+                  <Image src={nutyFeliz} alt="Nuty Feliz" width={96} height={96} class="h-24 w-24 object-contain filter drop-shadow-md animate-bounce-subtle" />
                   <!-- Small check badge overlapping Nuty -->
                   <div class="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-success text-white shadow-md border-2 border-white">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
@@ -211,21 +211,21 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
                 </div>
               </div>
               
-              <h2 class="text-3xl font-black text-on-surface md:text-4xl uppercase tracking-tight">¡Muchas gracias!</h2>
-              <p class="mt-3 text-base font-semibold text-on-surface-muted max-w-sm mx-auto">Tu opinión es extremadamente valiosa para nosotros.</p>
+              <h2 class="text-2xl font-black text-on-surface md:text-3xl uppercase tracking-tight">¡Muchas gracias!</h2>
+              <p class="mt-2 text-sm font-semibold text-on-surface-muted max-w-xs mx-auto">Tu opinión es extremadamente valiosa para nosotros.</p>
             </div>
 
             <!-- Auto Reset Countdown -->
-            <div class="w-full mt-8 pt-6 border-t border-outline/50 max-w-sm">
-              <p class="text-xs text-on-surface-muted font-semibold flex items-center justify-center gap-1.5">
+            <div class="w-full mt-6 pt-5 border-t border-outline/50 max-w-xs">
+              <p class="text-[11px] text-on-surface-muted font-semibold flex items-center justify-center gap-1.5">
                 <span>La pantalla se reiniciará en</span>
                 <span id="countdown-num" class="font-extrabold text-primary text-sm bg-primary/10 px-2 py-0.5 rounded">120</span>
                 <span>segundos...</span>
               </p>
-              <div class="mt-3 w-full bg-outline/40 h-2.5 rounded-full overflow-hidden">
+              <div class="mt-3.5 w-full bg-outline/40 h-2 rounded-full overflow-hidden">
                 <div id="countdown-bar" class="h-full bg-primary transition-all duration-100 ease-linear" style="width: 100%;"></div>
               </div>
-              <div class="mt-5 flex justify-center">
+              <div class="mt-4 flex justify-center">
                 <button id="btn-reiniciar-ahora" type="button" class="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-strong rounded-xl shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95">
                   Reiniciar ahora
                 </button>
@@ -237,12 +237,12 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
           <div class="hidden md:block w-[1px] bg-outline/50 my-4"></div>
 
           <!-- Right side: Ticket-styled TripAdvisor voucher -->
-          <div class="flex-[1.35] rounded-3xl border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-transparent p-6 md:p-8 shadow-inner relative overflow-hidden flex flex-col justify-center">
+          <div class="flex-[1.6] rounded-3xl border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-transparent p-4 md:p-5 shadow-inner relative overflow-hidden flex flex-col justify-center">
             <!-- Ticket cutouts -->
             <div class="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-r-full border-y border-r border-dashed border-primary/30"></div>
             <div class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-l-full border-y border-l border-dashed border-primary/30"></div>
             
-            <div class="text-center mb-6">
+            <div class="text-center mb-5">
               <p class="text-sm font-black text-primary md:text-base uppercase tracking-wider">
                 ⭐ ¡Califícanos en TripAdvisor! ⭐
               </p>
@@ -251,10 +251,10 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
               </p>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-5">
               <!-- QR Code Column -->
               <div class="flex flex-col items-center gap-2 shrink-0">
-                <div class="p-3 bg-white rounded-2xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105 shrink-0">
+                <div class="p-2.5 bg-white rounded-2xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105 shrink-0">
                   <img
                     src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fwww.tripadvisor.com.mx%2FAttraction_Review-g249850-d33861180-Reviews-Casa_Universitaria_del_Agua_UJAT-Villahermosa_Central_Mexico_and_Gulf_Coast.html"
                     alt="Código QR de Tripadvisor"
@@ -274,7 +274,7 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
 
               <!-- TripAdvisor Widget Column -->
               <div class="flex flex-col items-center gap-2 shrink-0">
-                <div class="p-3 bg-white rounded-2xl shadow-md border border-outline/50 flex items-center justify-center min-w-[200px] min-h-[156px] shrink-0">
+                <div class="p-2.5 bg-white rounded-2xl shadow-md border border-outline/50 flex items-center justify-center min-w-[200px] min-h-[156px] shrink-0">
                   <div id="TA_cdswritereviewlg861" class="TA_cdswritereviewlg w-full shrink-0">
                     <ul id="P7sTAB54Ork" class="TA_links DsCyy3GjOoI">
                       <li id="49q8LNgDCLo0" class="8q1JOnM0">
