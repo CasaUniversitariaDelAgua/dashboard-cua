@@ -237,12 +237,12 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
           <div class="hidden md:block w-[1px] bg-outline/50 my-4"></div>
 
           <!-- Right side: Ticket-styled TripAdvisor voucher -->
-          <div class="flex-[1.6] rounded-3xl border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-transparent p-4 md:p-5 shadow-inner relative overflow-hidden flex flex-col justify-center">
+          <div class="flex-[1.2] rounded-3xl border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-transparent p-6 md:p-8 shadow-inner relative overflow-hidden flex flex-col justify-center items-center">
             <!-- Ticket cutouts -->
             <div class="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-r-full border-y border-r border-dashed border-primary/30"></div>
             <div class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-l-full border-y border-l border-dashed border-primary/30"></div>
             
-            <div class="text-center mb-5">
+            <div class="text-center mb-6">
               <p class="text-sm font-black text-primary md:text-base uppercase tracking-wider">
                 ⭐ ¡Califícanos en TripAdvisor! ⭐
               </p>
@@ -251,45 +251,21 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
               </p>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-5">
-              <!-- QR Code Column -->
-              <div class="flex flex-col items-center gap-2 shrink-0">
-                <div class="p-2.5 bg-white rounded-2xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105 shrink-0">
-                  <img
-                    src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fwww.tripadvisor.com.mx%2FAttraction_Review-g249850-d33861180-Reviews-Casa_Universitaria_del_Agua_UJAT-Villahermosa_Central_Mexico_and_Gulf_Coast.html"
-                    alt="Código QR de Tripadvisor"
-                    width="150"
-                    height="150"
-                    class="h-32 w-32 rounded-lg shrink-0"
-                    loading="lazy"
-                  />
-                </div>
-                <p class="text-[9px] font-bold text-on-surface-muted text-center max-w-[130px] shrink-0">
-                  Escanea el código QR en tu dispositivo
-                </p>
+            <!-- QR Code Container -->
+            <div class="flex flex-col items-center gap-3">
+              <div class="p-3.5 bg-white rounded-2xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105">
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fwww.tripadvisor.com.mx%2FAttraction_Review-g249850-d33861180-Reviews-Casa_Universitaria_del_Agua_UJAT-Villahermosa_Central_Mexico_and_Gulf_Coast.html"
+                  alt="Código QR de Tripadvisor"
+                  width="180"
+                  height="180"
+                  class="h-44 w-44 rounded-lg"
+                  loading="lazy"
+                />
               </div>
-
-              <!-- Separator -->
-              <div class="hidden sm:block h-28 w-[1px] bg-primary/20 shrink-0"></div>
-
-              <!-- TripAdvisor Widget Column -->
-              <div class="flex flex-col items-center gap-2 shrink-0">
-                <div class="p-2.5 bg-white rounded-2xl shadow-md border border-outline/50 flex items-center justify-center min-w-[200px] min-h-[156px] shrink-0">
-                  <div id="TA_cdswritereviewlg861" class="TA_cdswritereviewlg w-full shrink-0">
-                    <ul id="P7sTAB54Ork" class="TA_links DsCyy3GjOoI">
-                      <li id="49q8LNgDCLo0" class="8q1JOnM0">
-                        <a target="_blank" href="https://www.tripadvisor.com.mx/Attraction_Review-g249850-d33861180-Reviews-Casa_Universitaria_del_Agua_UJAT-Villahermosa_Central_Mexico_and_Gulf_Coast.html">
-                          <img src="https://static.tacdn.com/img2/brand_refresh/Tripadvisor_lockup_horizontal_secondary_registered.svg" alt="TripAdvisor" class="mx-auto" />
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <script async src="https://www.jscache.com/wejs?wtype=cdswritereviewlg&uniq=861&locationId=33861180&lang=es_MX&lang=es_MX&display_version=2" data-loadtrk onload="this.loadtrk=true"></script>
-                </div>
-                <p class="text-[9px] font-bold text-on-surface-muted text-center max-w-[130px] shrink-0">
-                  O haz clic en el logo para abrir el sitio
-                </p>
-              </div>
+              <p class="text-xs font-bold text-on-surface-muted text-center max-w-[200px]">
+                Escanea el código QR en tu dispositivo para abrir el sitio.
+              </p>
             </div>
           </div>
           
