@@ -4,6 +4,7 @@ import "../styles/encuesta.css";
 import { Image } from "astro:assets";
 import logo from "../assets/icono-favicon.webp";
 import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
+import qrCode from "../assets/QR.png";
 ---
 
 <!doctype html>
@@ -15,42 +16,82 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/android-chrome-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="/android-chrome-512x512.png"
+    />
     <link rel="manifest" href="/site.webmanifest" />
   </head>
-  <body class="min-h-screen bg-background font-archer text-on-background antialiased selection:bg-primary/20 selection:text-primary">
-    
+  <body
+    class="min-h-screen bg-background font-archer text-on-background antialiased selection:bg-primary/20 selection:text-primary"
+  >
     <!-- Hero Header with Aurora Glow -->
-    <header class="relative overflow-hidden bg-gradient-to-br from-primary via-primary-strong to-[#ff8c38] py-14 md:py-20 text-center shadow-md">
+    <header
+      class="relative overflow-hidden bg-gradient-to-br from-primary via-primary-strong to-[#ff8c38] py-14 md:py-20 text-center shadow-md"
+    >
       <!-- Aurora backdrop filter spheres -->
-      <div class="absolute -top-40 left-1/4 h-80 w-80 rounded-full bg-white/20 blur-[80px]"></div>
-      <div class="absolute -bottom-20 right-1/4 h-60 w-60 rounded-full bg-primary-warm/30 blur-[60px]"></div>
-      <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 50% 50%, white 2px, transparent 2px); background-size: 24px 24px;"></div>
-      
+      <div
+        class="absolute -top-40 left-1/4 h-80 w-80 rounded-full bg-white/20 blur-[80px]"
+      >
+      </div>
+      <div
+        class="absolute -bottom-20 right-1/4 h-60 w-60 rounded-full bg-primary-warm/30 blur-[60px]"
+      >
+      </div>
+      <div
+        class="absolute inset-0 opacity-[0.03]"
+        style="background-image: radial-gradient(circle at 50% 50%, white 2px, transparent 2px); background-size: 24px 24px;"
+      >
+      </div>
+
       <div class="relative mx-auto max-w-3xl px-6 flex flex-col items-center">
         <!-- Logo -->
-        <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 p-3 backdrop-blur-md border border-white/20 shadow-lg transition-transform duration-500 hover:scale-105">
-          <Image src={logo} alt="Logo CUA" width={48} height={48} class="h-full w-full object-contain filter drop-shadow-sm" />
+        <div
+          class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 p-3 backdrop-blur-md border border-white/20 shadow-lg transition-transform duration-500 hover:scale-105"
+        >
+          <Image
+            src={logo}
+            alt="Logo CUA"
+            width={48}
+            height={48}
+            class="h-full w-full object-contain filter drop-shadow-sm"
+          />
         </div>
-        <h1 class="text-3xl font-extrabold tracking-tight text-white md:text-5xl uppercase font-black">
+        <h1
+          class="text-3xl font-extrabold tracking-tight text-white md:text-5xl uppercase font-black"
+        >
           Queremos conocer tu opinión
         </h1>
-        <p class="mt-2.5 text-sm font-medium text-white/90 md:text-base max-w-md">
+        <p
+          class="mt-2.5 text-sm font-medium text-white/90 md:text-base max-w-md"
+        >
           Tu experiencia nos ayuda a seguir mejorando cada día.
         </p>
       </div>
-      
+
       <!-- Curve separating header and body -->
-      <div class="absolute bottom-0 left-0 right-0 h-6 bg-background" style="clip-path: ellipse(60% 100% at 50% 100%);"></div>
+      <div
+        class="absolute bottom-0 left-0 right-0 h-6 bg-background"
+        style="clip-path: ellipse(60% 100% at 50% 100%);"
+      >
+      </div>
     </header>
 
     <!-- Survey container -->
     <div class="mx-auto max-w-3xl px-4 pb-20 -mt-6 md:-mt-8 relative z-10">
       <div id="survey" class="space-y-6 animate-fade-in">
-        
         <!-- Question 1: Emoji satisfaction -->
-        <div class="bg-white/90 backdrop-blur-md border border-outline/65 p-6 md:p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.015)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.035)] hover:border-primary/20">
+        <div
+          class="bg-white/90 backdrop-blur-md border border-outline/65 p-6 md:p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.015)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.035)] hover:border-primary/20"
+        >
           <p class="mb-4 text-lg font-bold text-on-surface">
             1. ¿Qué tan satisfecho(a) estás con tu visita?
           </p>
@@ -60,53 +101,86 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
               data-emoji="very-bad"
               class="emoji-option group flex flex-col items-center gap-2 rounded-2xl border-2 border-outline/75 bg-white px-2 py-5 transition-all duration-300 hover:border-danger/30 hover:bg-danger/5 hover:shadow-md cursor-pointer"
             >
-              <span class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6">😫</span>
-              <span class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-danger/90">Muy insatisfecho</span>
+              <span
+                class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6"
+                >😫</span
+              >
+              <span
+                class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-danger/90"
+                >Muy insatisfecho</span
+              >
             </button>
             <button
               type="button"
               data-emoji="bad"
               class="emoji-option group flex flex-col items-center gap-2 rounded-2xl border-2 border-outline/75 bg-white px-2 py-5 transition-all duration-300 hover:border-warning/30 hover:bg-warning/5 hover:shadow-md cursor-pointer"
             >
-              <span class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6">😕</span>
-              <span class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-warning/90">Insatisfecho</span>
+              <span
+                class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6"
+                >😕</span
+              >
+              <span
+                class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-warning/90"
+                >Insatisfecho</span
+              >
             </button>
             <button
               type="button"
               data-emoji="neutral"
               class="emoji-option group flex flex-col items-center gap-2 rounded-2xl border-2 border-outline/75 bg-white px-2 py-5 transition-all duration-300 hover:border-amber-400/40 hover:bg-amber-50 hover:shadow-md cursor-pointer"
             >
-              <span class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6">😐</span>
-              <span class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-amber-600">Neutral</span>
+              <span
+                class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6"
+                >😐</span
+              >
+              <span
+                class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-amber-600"
+                >Neutral</span
+              >
             </button>
             <button
               type="button"
               data-emoji="good"
               class="emoji-option group flex flex-col items-center gap-2 rounded-2xl border-2 border-outline/75 bg-white px-2 py-5 transition-all duration-300 hover:border-success/30 hover:bg-success/5 hover:shadow-md cursor-pointer"
             >
-              <span class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6">😊</span>
-              <span class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-success/90">Satisfecho</span>
+              <span
+                class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6"
+                >😊</span
+              >
+              <span
+                class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-success/90"
+                >Satisfecho</span
+              >
             </button>
             <button
               type="button"
               data-emoji="very-good"
               class="emoji-option group col-span-2 sm:col-span-1 flex flex-col items-center gap-2 rounded-2xl border-2 border-outline/75 bg-white px-2 py-5 transition-all duration-300 hover:border-success/40 hover:bg-success/5 hover:shadow-md cursor-pointer"
             >
-              <span class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6">🤩</span>
-              <span class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-success-strong">Sumamente feliz</span>
+              <span
+                class="text-4xl transition-transform duration-300 group-hover:scale-120 md:text-5xl group-hover:-rotate-6"
+                >🤩</span
+              >
+              <span
+                class="text-xs font-semibold leading-tight text-on-surface-muted group-hover:text-success-strong"
+                >Sumamente feliz</span
+              >
             </button>
           </div>
         </div>
 
         <!-- Question 2: Textarea & Tags -->
-        <div class="bg-white/90 backdrop-blur-md border border-outline/65 p-6 md:p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.015)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.035)] hover:border-primary/20">
+        <div
+          class="bg-white/90 backdrop-blur-md border border-outline/65 p-6 md:p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.015)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.035)] hover:border-primary/20"
+        >
           <p class="mb-2 text-lg font-bold text-on-surface">
             2. ¿Qué fue lo que más te gustó de tu recorrido?
           </p>
           <p class="mb-4 text-xs font-medium text-on-surface-muted">
-            Ayúdanos escribiendo qué te gustó o selecciona una de las sugerencias de abajo. (Opcional)
+            Ayúdanos escribiendo qué te gustó o selecciona una de las
+            sugerencias de abajo. (Opcional)
           </p>
-          
+
           <div class="relative">
             <textarea
               id="respuesta-texto"
@@ -115,40 +189,83 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
               placeholder="Cuéntanos más sobre tu recorrido..."
               class="w-full resize-none rounded-xl border border-outline/75 bg-white px-4 py-3 text-base text-on-surface placeholder:text-on-surface-muted/40 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             ></textarea>
-            <div id="char-count" class="absolute bottom-3 right-3 text-[10px] font-bold text-on-surface-muted/60 bg-white/90 px-1.5 py-0.5 rounded border border-outline/40">
+            <div
+              id="char-count"
+              class="absolute bottom-3 right-3 text-[10px] font-bold text-on-surface-muted/60 bg-white/90 px-1.5 py-0.5 rounded border border-outline/40"
+            >
               0 / 250
             </div>
           </div>
 
           <!-- Quick Suggestion Tags -->
           <div class="mt-4">
-            <p class="mb-2.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-muted/70">Sugerencias de temas:</p>
+            <p
+              class="mb-2.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-muted/70"
+            >
+              Sugerencias de temas:
+            </p>
             <div class="flex flex-wrap gap-2">
-              <button type="button" class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer" data-tag="Las maquetas">🎨 Las maquetas</button>
-              <button type="button" class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer" data-tag="La explicación de los guías">🗣️ Explicación de guías</button>
-              <button type="button" class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer" data-tag="El cuidado del agua">💧 Cuidado del agua</button>
-              <button type="button" class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer" data-tag="Las instalaciones limpias">🧹 Instalaciones limpias</button>
-              <button type="button" class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer" data-tag="El video educativo">🎥 Video educativo</button>
-              <button type="button" class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer" data-tag="El aire acondicionado">❄️ Aire acondicionado</button>
+              <button
+                type="button"
+                class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer"
+                data-tag="Las maquetas">🎨 Las maquetas</button
+              >
+              <button
+                type="button"
+                class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer"
+                data-tag="La explicación de los guías"
+                >🗣️ Explicación de guías</button
+              >
+              <button
+                type="button"
+                class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer"
+                data-tag="El cuidado del agua">💧 Cuidado del agua</button
+              >
+              <button
+                type="button"
+                class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer"
+                data-tag="Las instalaciones limpias"
+                >🧹 Instalaciones limpias</button
+              >
+              <button
+                type="button"
+                class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer"
+                data-tag="El video educativo">🎥 Video educativo</button
+              >
+              <button
+                type="button"
+                class="tag-chip flex items-center gap-1.5 rounded-full border border-outline bg-white px-3.5 py-1.5 text-xs font-semibold text-on-surface-muted transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer"
+                data-tag="El aire acondicionado">❄️ Aire acondicionado</button
+              >
             </div>
           </div>
         </div>
 
         <!-- Question 3: Numeric scale -->
-        <div class="bg-white/90 backdrop-blur-md border border-outline/65 p-6 md:p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.015)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.035)] hover:border-primary/20">
+        <div
+          class="bg-white/90 backdrop-blur-md border border-outline/65 p-6 md:p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.015)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.035)] hover:border-primary/20"
+        >
           <p class="mb-1 text-lg font-bold text-on-surface">
             3. ¿Recomendarías el museo a otras personas?
           </p>
-          <p class="mb-4 text-xs font-medium text-on-surface-muted">Del 0 (Nada probable) al 10 (Muy probable)</p>
+          <p class="mb-4 text-xs font-medium text-on-surface-muted">
+            Del 0 (Nada probable) al 10 (Muy probable)
+          </p>
           <div class="flex flex-col gap-3">
             <div class="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-11">
               {
                 Array.from({ length: 11 }, (_, i) => {
                   let hoverClass = "";
-                  if (i <= 6) hoverClass = "hover:bg-danger/5 hover:border-danger/35 hover:text-danger";
-                  else if (i <= 8) hoverClass = "hover:bg-warning/5 hover:border-warning/35 hover:text-warning";
-                  else hoverClass = "hover:bg-success/5 hover:border-success/35 hover:text-success";
-                  
+                  if (i <= 6)
+                    hoverClass =
+                      "hover:bg-danger/5 hover:border-danger/35 hover:text-danger";
+                  else if (i <= 8)
+                    hoverClass =
+                      "hover:bg-warning/5 hover:border-warning/35 hover:text-warning";
+                  else
+                    hoverClass =
+                      "hover:bg-success/5 hover:border-success/35 hover:text-success";
+
                   return (
                     <button
                       type="button"
@@ -162,12 +279,18 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
               }
             </div>
             <div class="flex items-center justify-between px-1">
-              <span class="text-xs font-semibold text-danger flex items-center gap-1">
-                <span class="h-2 w-2 rounded-full bg-danger animate-pulse"></span>
+              <span
+                class="text-xs font-semibold text-danger flex items-center gap-1"
+              >
+                <span class="h-2 w-2 rounded-full bg-danger animate-pulse"
+                ></span>
                 0 — Nada probable
               </span>
-              <span class="text-xs font-semibold text-success flex items-center gap-1">
-                <span class="h-2 w-2 rounded-full bg-success animate-pulse"></span>
+              <span
+                class="text-xs font-semibold text-success flex items-center gap-1"
+              >
+                <span class="h-2 w-2 rounded-full bg-success animate-pulse"
+                ></span>
                 10 — Muy probable
               </span>
             </div>
@@ -183,50 +306,105 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
             class="w-full md:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-primary/40 px-10 py-4 text-lg font-bold text-white/80 transition-all duration-300 cursor-not-allowed md:px-14 shadow-sm"
           >
             <span>Enviar Encuesta</span>
-            <svg class="h-5 w-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            <svg
+              class="h-5 w-5 transition-transform duration-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>
           </button>
-          <p id="error-msg" class="mt-3 hidden text-sm font-medium text-danger"></p>
+          <p id="error-msg" class="mt-3 hidden text-sm font-medium text-danger">
+          </p>
         </div>
       </div>
 
       <!-- Thank you + QR section (hidden initially) -->
       <div id="gracias" class="hidden">
-        <div class="bg-white/95 backdrop-blur-md border border-outline/65 p-6 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.03)] max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-6 items-stretch">
-          
+        <div
+          class="bg-white/95 backdrop-blur-md border border-outline/65 p-6 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.03)] max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-6 items-stretch"
+        >
           <!-- Left side: Thank you + Mascot + Countdown -->
-          <div class="flex-[0.75] md:max-w-[280px] flex flex-col justify-between items-center text-center p-3">
+          <div
+            class="flex-[0.75] md:max-w-[280px] flex flex-col justify-between items-center text-center p-3"
+          >
             <div class="my-auto">
               <!-- Nuty Mascot Celebration -->
               <div class="mb-4 flex justify-center">
                 <div class="relative">
-                  <Image src={nutyFeliz} alt="Nuty Feliz" width={96} height={96} class="h-24 w-24 object-contain filter drop-shadow-md animate-bounce-subtle" />
+                  <Image
+                    src={nutyFeliz}
+                    alt="Nuty Feliz"
+                    width={96}
+                    height={96}
+                    class="h-24 w-24 object-contain filter drop-shadow-md animate-bounce-subtle"
+                  />
                   <!-- Small check badge overlapping Nuty -->
-                  <div class="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-success text-white shadow-md border-2 border-white">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  <div
+                    class="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-success text-white shadow-md border-2 border-white"
+                  >
+                    <svg
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="3.5"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M5 13l4 4L19 7"></path>
                     </svg>
                   </div>
                 </div>
               </div>
-              
-              <h2 class="text-2xl font-black text-on-surface md:text-3xl uppercase tracking-tight">¡Muchas gracias!</h2>
-              <p class="mt-2 text-sm font-semibold text-on-surface-muted max-w-xs mx-auto">Tu opinión es extremadamente valiosa para nosotros.</p>
+
+              <h2
+                class="text-2xl font-black text-on-surface md:text-3xl uppercase tracking-tight"
+              >
+                ¡Muchas gracias!
+              </h2>
+              <p
+                class="mt-2 text-sm font-semibold text-on-surface-muted max-w-xs mx-auto"
+              >
+                Tu opinión es extremadamente valiosa para nosotros.
+              </p>
             </div>
 
             <!-- Auto Reset Countdown -->
             <div class="w-full mt-6 pt-5 border-t border-outline/50 max-w-xs">
-              <p class="text-[11px] text-on-surface-muted font-semibold flex items-center justify-center gap-1.5">
+              <p
+                class="text-[11px] text-on-surface-muted font-semibold flex items-center justify-center gap-1.5"
+              >
                 <span>La pantalla se reiniciará en</span>
-                <span id="countdown-num" class="font-extrabold text-primary text-sm bg-primary/10 px-2 py-0.5 rounded">120</span>
+                <span
+                  id="countdown-num"
+                  class="font-extrabold text-primary text-sm bg-primary/10 px-2 py-0.5 rounded"
+                  >120</span
+                >
                 <span>segundos...</span>
               </p>
-              <div class="mt-3.5 w-full bg-outline/40 h-2 rounded-full overflow-hidden">
-                <div id="countdown-bar" class="h-full bg-primary transition-all duration-100 ease-linear" style="width: 100%;"></div>
+              <div
+                class="mt-3.5 w-full bg-outline/40 h-2 rounded-full overflow-hidden"
+              >
+                <div
+                  id="countdown-bar"
+                  class="h-full bg-primary transition-all duration-100 ease-linear"
+                  style="width: 100%;"
+                >
+                </div>
               </div>
               <div class="mt-4 flex justify-center">
-                <button id="btn-reiniciar-ahora" type="button" class="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-strong rounded-xl shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95">
+                <button
+                  id="btn-reiniciar-ahora"
+                  type="button"
+                  class="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-strong rounded-xl shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95"
+                >
                   Reiniciar ahora
                 </button>
               </div>
@@ -237,38 +415,53 @@ import nutyFeliz from "../assets/nuty/nuti-feliz.webp";
           <div class="hidden md:block w-[1px] bg-outline/50 my-4"></div>
 
           <!-- Right side: Ticket-styled TripAdvisor voucher -->
-          <div class="flex-[1.2] rounded-3xl border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-transparent p-6 md:p-8 shadow-inner relative overflow-hidden flex flex-col justify-center items-center">
+          <div
+            class="flex-[1.2] rounded-3xl border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-transparent p-6 md:p-8 shadow-inner relative overflow-hidden flex flex-col justify-center items-center"
+          >
             <!-- Ticket cutouts -->
-            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-r-full border-y border-r border-dashed border-primary/30"></div>
-            <div class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-l-full border-y border-l border-dashed border-primary/30"></div>
-            
+            <div
+              class="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-r-full border-y border-r border-dashed border-primary/30"
+            >
+            </div>
+            <div
+              class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-[#fcfaf7] rounded-l-full border-y border-l border-dashed border-primary/30"
+            >
+            </div>
+
             <div class="text-center mb-6">
-              <p class="text-sm font-black text-primary md:text-base uppercase tracking-wider">
-                ⭐ ¡Califícanos en TripAdvisor! ⭐
-              </p>
-              <p class="text-xs md:text-sm font-black text-on-surface/90 mt-1.5 leading-snug">
+              <p
+                class="text-sm font-black text-primary md:text-base uppercase tracking-wider"
+              >
                 ¡Muestra tu opinión al personal y gana un Sticker oficial!
+              </p>
+              <p
+                class="text-xs md:text-sm font-black text-on-surface/90 mt-1.5 leading-snug"
+              >
+                ⭐ ¡Califícanos en TripAdvisor! ⭐
               </p>
             </div>
 
             <!-- QR Code Container -->
             <div class="flex flex-col items-center gap-3">
-              <div class="p-3.5 bg-white rounded-2xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105">
-                <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fwww.tripadvisor.com.mx%2FAttraction_Review-g249850-d33861180-Reviews-Casa_Universitaria_del_Agua_UJAT-Villahermosa_Central_Mexico_and_Gulf_Coast.html"
+              <div
+                class="p-3.5 bg-white rounded-2xl shadow-md border border-outline/50 transition-transform duration-300 hover:scale-105"
+              >
+                <Image
+                  src={qrCode}
                   alt="Código QR de Tripadvisor"
-                  width="180"
-                  height="180"
+                  width={180}
+                  height={180}
                   class="h-44 w-44 rounded-lg"
                   loading="lazy"
                 />
               </div>
-              <p class="text-xs font-bold text-on-surface-muted text-center max-w-[200px]">
+              <p
+                class="text-xs font-bold text-on-surface-muted text-center max-w-[200px]"
+              >
                 Escanea el código QR en tu dispositivo para abrir el sitio.
               </p>
             </div>
           </div>
-          
         </div>
       </div>
     </div>
