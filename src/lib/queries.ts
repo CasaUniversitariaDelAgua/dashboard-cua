@@ -35,6 +35,29 @@ function getMexicoCityTodayRange() {
   return { start, end };
 }
 
+/**
+ * Realiza paginación automática para superar el límite por defecto de 1,000 filas de Supabase/PostgREST.
+ * Itera con .range() de 1,000 en 1,000 hasta recuperar la totalidad de los registros.
+ */
+export async function fetchAllPages<T = any>(
+  queryBuilder: any,
+  pageSize = 1000
+): Promise<T[]> {
+  const allData: T[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await queryBuilder.range(from, from + pageSize - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    allData.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return allData;
+}
+
 async function getResumenPorRango(desde?: string, hasta?: string) {
   let inicio: string;
   let fin: string;
@@ -54,11 +77,23 @@ async function getResumenPorRango(desde?: string, hasta?: string) {
     fin = end;
   }
 
-  const [{ data: ventas }, { data: detalles }] = await Promise.all([
-    supabase.from('transacciones').select('total, metodo_pago')
-      .gte('fecha_hora', inicio).lte('fecha_hora', fin),
-    supabase.from('transaccion_detalles').select('cantidad, transaccion:transacciones!inner(fecha_hora)')
-      .gte('transaccion.fecha_hora', inicio).lte('transaccion.fecha_hora', fin),
+  const queryVentas = supabase
+    .from('transacciones')
+    .select('id, total, metodo_pago')
+    .gte('fecha_hora', inicio)
+    .lte('fecha_hora', fin)
+    .order('id', { ascending: true });
+
+  const queryDetalles = supabase
+    .from('transaccion_detalles')
+    .select('id, cantidad, transaccion:transacciones!inner(fecha_hora)')
+    .gte('transaccion.fecha_hora', inicio)
+    .lte('transaccion.fecha_hora', fin)
+    .order('id', { ascending: true });
+
+  const [ventas, detalles] = await Promise.all([
+    fetchAllPages<{ total: number; metodo_pago: string }>(queryVentas),
+    fetchAllPages<{ cantidad: number }>(queryDetalles),
   ]);
 
   const total = ventas?.reduce((s, t) => s + t.total, 0) ?? 0;
@@ -94,25 +129,33 @@ export async function getResumenGeneral(opts?: { desde?: string; hasta?: string 
   const inicioMes = new Date(Date.UTC(mxParts.year, mxParts.month - 1, 1, 6, 0, 0)).toISOString();
 
   const [
-    ventasHoyData,
-    ventasSemanaData,
-    ventasMesData,
-    detallesHoy,
+    ventasHoyList,
+    ventasSemanaList,
+    ventasMesList,
+    detallesHoyList,
   ] = await Promise.all([
-    supabase.from('transacciones').select('total, metodo_pago').gte('fecha_hora', hoyInicio).lte('fecha_hora', hoyFin),
-    supabase.from('transacciones').select('total').gte('fecha_hora', inicioSemana).lte('fecha_hora', hoyFin),
-    supabase.from('transacciones').select('total').gte('fecha_hora', inicioMes).lte('fecha_hora', hoyFin),
-    supabase.from('transaccion_detalles').select('cantidad, transaccion:transacciones!inner(fecha_hora)')
-      .gte('transaccion.fecha_hora', hoyInicio).lte('transaccion.fecha_hora', hoyFin),
+    fetchAllPages<{ total: number; metodo_pago: string }>(
+      supabase.from('transacciones').select('id, total, metodo_pago').gte('fecha_hora', hoyInicio).lte('fecha_hora', hoyFin).order('id', { ascending: true })
+    ),
+    fetchAllPages<{ total: number }>(
+      supabase.from('transacciones').select('id, total').gte('fecha_hora', inicioSemana).lte('fecha_hora', hoyFin).order('id', { ascending: true })
+    ),
+    fetchAllPages<{ total: number }>(
+      supabase.from('transacciones').select('id, total').gte('fecha_hora', inicioMes).lte('fecha_hora', hoyFin).order('id', { ascending: true })
+    ),
+    fetchAllPages<{ cantidad: number }>(
+      supabase.from('transaccion_detalles').select('id, cantidad, transaccion:transacciones!inner(fecha_hora)')
+        .gte('transaccion.fecha_hora', hoyInicio).lte('transaccion.fecha_hora', hoyFin)
+        .order('id', { ascending: true })
+    ),
   ]);
 
-  const ventasHoyList = ventasHoyData.data ?? [];
   const ventasHoy = ventasHoyList.reduce((s, t) => s + t.total, 0);
-  const ventasSemana = ventasSemanaData.data?.reduce((s, t) => s + t.total, 0) ?? 0;
-  const ventasMes = ventasMesData.data?.reduce((s, t) => s + t.total, 0) ?? 0;
+  const ventasSemana = ventasSemanaList.reduce((s, t) => s + t.total, 0);
+  const ventasMes = ventasMesList.reduce((s, t) => s + t.total, 0);
   const countHoy = ventasHoyList.length;
   const ticketPromedio = countHoy > 0 ? ventasHoy / countHoy : 0;
-  const productosVendidosHoy = detallesHoy.data?.reduce((s, d) => s + d.cantidad, 0) ?? 0;
+  const productosVendidosHoy = detallesHoyList.reduce((s, d) => s + d.cantidad, 0);
 
   const totalEfectivo = ventasHoyList.filter(t => t.metodo_pago === 'efectivo' || t.metodo_pago === '0').reduce((s, t) => s + t.total, 0);
   const totalTarjeta = ventasHoyList.filter(t => t.metodo_pago === 'tarjeta' || t.metodo_pago === '1').reduce((s, t) => s + t.total, 0);
@@ -137,8 +180,7 @@ export async function getCortesCaja(opts?: { desde?: string; hasta?: string; usu
   }
   if (opts?.usuario) query = query.eq('usuario_id', opts.usuario);
 
-  const { data, error } = await query.order('fecha_inicio', { ascending: false });
-  if (error) throw error;
+  const data = await fetchAllPages<CorteCaja>(query.order('fecha_inicio', { ascending: false }));
   return data ?? [];
 }
 
@@ -165,17 +207,14 @@ export async function getTransacciones(opts?: { desde?: string; hasta?: string; 
     }
   }
 
-  const { data, error } = await query.order('fecha_hora', { ascending: false });
-  if (error) throw error;
-
-  let result = data ?? [];
+  let result = await fetchAllPages<Transaccion>(query.order('fecha_hora', { ascending: false }));
 
   if (opts?.busqueda) {
     const q = opts.busqueda.toLowerCase();
     result = result.filter(t =>
       t.id.toLowerCase().includes(q) ||
       t.usuario?.nombre?.toLowerCase().includes(q) ||
-      t.detalles?.some((d: { producto: { nombre: string; }; }) => d.producto?.nombre?.toLowerCase().includes(q))
+      t.detalles?.some(d => d.producto?.nombre?.toLowerCase().includes(q))
     );
   }
 
@@ -185,7 +224,7 @@ export async function getTransacciones(opts?: { desde?: string; hasta?: string; 
 export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; mes?: number | string; año?: number | string }): Promise<VentaPorDia[]> {
   let query = supabase
     .from('transacciones')
-    .select('fecha_hora, total, detalles:transaccion_detalles(cantidad, producto:productos(tipo))');
+    .select('id, fecha_hora, total, detalles:transaccion_detalles(cantidad, producto:productos(tipo))');
 
   const mesVal = (opts?.mes && opts.mes !== 'todos') ? parseInt(String(opts.mes)) : undefined;
   const añoVal = (opts?.año && opts.año !== 'todos') ? parseInt(String(opts.año)) : undefined;
@@ -223,8 +262,7 @@ export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; m
     }
   }
 
-  const { data, error } = await query.order('fecha_hora', { ascending: true });
-  if (error) throw error;
+  const data = await fetchAllPages<any>(query.order('fecha_hora', { ascending: true }));
 
   const mapa = new Map<string, { total: number; transacciones: number; visitantes: number }>();
   for (const t of data ?? []) {
@@ -256,7 +294,7 @@ export async function getVentasPorDia(opts?: { desde?: string; hasta?: string; m
 export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: string; limite?: number }) {
   let query = supabase
     .from('transaccion_detalles')
-    .select('cantidad, precio_unitario, producto:productos!inner(nombre, tipo), transaccion:transacciones!inner(fecha_hora)')
+    .select('id, cantidad, precio_unitario, producto:productos!inner(nombre, tipo), transaccion:transacciones!inner(fecha_hora)')
     .eq('producto.tipo', 'souvenir');
 
   if (opts?.desde) {
@@ -270,8 +308,7 @@ export async function getSouvenirsMasVendidos(opts?: { desde?: string; hasta?: s
     query = query.lte('transaccion.fecha_hora', fin);
   }
 
-  const { data, error } = await query;
-  if (error) throw error;
+  const data = await fetchAllPages<any>(query.order('id', { ascending: true }));
 
   const mapa = new Map<string, { cantidad: number; total: number }>();
   for (const d of data ?? []) {
@@ -295,28 +332,33 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
   const { start: hoyInicio, end: hoyFin } = getMexicoCityTodayRange();
 
   // 1. Visitantes Hoy
-  const { data: hoyData } = await supabase
+  const hoyQuery = supabase
     .from('transaccion_detalles')
-    .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(tipo)')
+    .select('id, cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(tipo)')
     .eq('producto.tipo', 'entrada')
     .gte('transaccion.fecha_hora', hoyInicio)
-    .lte('transaccion.fecha_hora', hoyFin);
+    .lte('transaccion.fecha_hora', hoyFin)
+    .order('id', { ascending: true });
 
-  const visitantesHoy = (hoyData ?? []).reduce((sum, item) => sum + item.cantidad, 0);
+  const hoyData = await fetchAllPages<{ cantidad: number }>(hoyQuery);
+  const visitantesHoy = hoyData.reduce((sum, item) => sum + item.cantidad, 0);
 
   // 2. Visitantes Acumulado Histórico (Todo el tiempo)
-  const { data: acumuladoData } = await supabase
+  const acumuladoQuery = supabase
     .from('transaccion_detalles')
-    .select('cantidad, producto:productos!inner(tipo)')
-    .eq('producto.tipo', 'entrada');
+    .select('id, cantidad, producto:productos!inner(tipo)')
+    .eq('producto.tipo', 'entrada')
+    .order('id', { ascending: true });
 
-  const visitantesAcumulado = (acumuladoData ?? []).reduce((sum, item) => sum + item.cantidad, 0);
+  const acumuladoData = await fetchAllPages<{ id: string; cantidad: number }>(acumuladoQuery);
+  const visitantesAcumulado = acumuladoData.reduce((sum, item) => sum + item.cantidad, 0);
 
   // 3. Visitantes Período
   let periodQuery = supabase
     .from('transaccion_detalles')
-    .select('cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(nombre, tipo)')
-    .eq('producto.tipo', 'entrada');
+    .select('id, cantidad, transaccion:transacciones!inner(fecha_hora), producto:productos!inner(nombre, tipo)')
+    .eq('producto.tipo', 'entrada')
+    .order('id', { ascending: true });
 
   const mesActual = (opts?.mes && opts.mes !== 'todos') ? parseInt(opts.mes) : undefined;
   const añoActual = (opts?.año && opts.año !== 'todos') ? parseInt(opts.año) : undefined;
@@ -341,7 +383,7 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
     periodQuery = periodQuery.gte('transaccion.fecha_hora', inicioMes).lte('transaccion.fecha_hora', finMes);
   }
 
-  const { data: mesData } = await periodQuery;
+  const mesData = await fetchAllPages<any>(periodQuery);
 
   let visitantesPeriodo = 0;
   const diasUnicos = new Set<string>();
@@ -375,3 +417,4 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
       .sort((a, b) => b.cantidad - a.cantidad),
   };
 }
+
