@@ -6,8 +6,9 @@ export function getFilters(url: URL) {
   const busqueda = url.searchParams.get('busqueda') ?? undefined;
   const mes = url.searchParams.get('mes') ?? undefined;
   const año = url.searchParams.get('año') ?? undefined;
+  const satisfaccion = url.searchParams.get('satisfaccion') ?? undefined;
 
-  return { desde, hasta, metodo, usuario, busqueda, mes, año };
+  return { desde, hasta, metodo, usuario, busqueda, mes, año, satisfaccion };
 }
 
 export function buildQueryParams(params: Record<string, string | undefined>): string {

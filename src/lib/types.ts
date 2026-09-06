@@ -109,3 +109,33 @@ export interface VisitorChartProps {
   data: Array<{ fecha: string; total: number; transacciones: number }>;
   title?: string;
 }
+
+export type SatisfaccionNivel = 'very-good' | 'good' | 'neutral' | 'bad' | 'very-bad';
+
+export interface Encuesta {
+  id: number;
+  fecha_hora: string;
+  satisfaccion: SatisfaccionNivel | string;
+  comentarios: string | null;
+  recomendacion: number;
+}
+
+export interface ResumenEncuestas {
+  total: number;
+  npsScore: number;
+  promotores: number;
+  pasivos: number;
+  detractores: number;
+  pctPromotores: number;
+  pctPasivos: number;
+  pctDetractores: number;
+  pctPositiva: number;
+  promedioCalificacion: number;
+  satisfaccionBreakdown: Record<SatisfaccionNivel, number>;
+  distribucionCalificaciones: number[];
+  temasFrecuentes: Array<{
+    tema: string;
+    conteo: number;
+    porcentaje: number;
+  }>;
+}

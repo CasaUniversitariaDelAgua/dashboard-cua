@@ -1,7 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getSession } from './lib/auth';
 
-const protectedPaths = ['/', '/cortes-caja', '/transacciones', '/souvenirs', '/visitantes'];
+const protectedPaths = ['/', '/cortes-caja', '/transacciones', '/souvenirs', '/visitantes', '/encuestas'];
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, request, redirect } = context;

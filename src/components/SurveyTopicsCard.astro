@@ -1,0 +1,84 @@
+---
+export interface Props {
+  temas: Array<{
+    tema: string;
+    conteo: number;
+    porcentaje: number;
+  }>;
+  total: number;
+  title?: string;
+}
+
+const { temas = [], total = 0, title = "Aspectos Más Destacados" } = Astro.props;
+
+const iconsMap: Record<string, string> = {
+  "Explicación de los guías": "🗣️",
+  "Las maquetas": "🎨",
+  "Cuidado del agua": "💧",
+  "Instalaciones limpias": "🧹",
+  "Video educativo": "🎥",
+  "Aire acondicionado": "❄️",
+};
+---
+
+<div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm flex flex-col h-full">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="text-lg font-bold text-on-surface">{title}</h3>
+      <p class="text-xs text-on-surface-muted">Menciones en comentarios y selecciones rápidas</p>
+    </div>
+  </div>
+
+  {temas.length === 0 || total === 0 ? (
+    <div class="flex flex-1 items-center justify-center py-12 text-center">
+      <div class="space-y-2">
+        <span class="text-4xl">💬</span>
+        <p class="text-sm font-semibold text-on-surface-muted">No hay menciones registradas</p>
+        <p class="text-xs text-on-surface-muted/75">Los visitantes aún no han seleccionado temas en sus respuestas</p>
+      </div>
+    </div>
+  ) : (
+    <div class="flex flex-col justify-between flex-1">
+      <div class="space-y-2.5">
+        {temas.map((item) => {
+          const emoji = iconsMap[item.tema] || "✨";
+          return (
+            <div class="space-y-1.5 p-1 rounded-lg hover:bg-surface-soft/40 transition-colors">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-on-surface flex items-center gap-1.5">
+                  <span class="text-sm">{emoji}</span>
+                  <span>{item.tema}</span>
+                </span>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-on-surface">{item.conteo} menciones</span>
+                  <span
+                    class="text-[11px] font-bold px-1.5 py-0.5 rounded"
+                    style="background-color: rgba(240, 152, 48, 0.15); color: #d9811e;"
+                  >
+                    {item.porcentaje}%
+                  </span>
+                </div>
+              </div>
+              <div
+                class="h-2 w-full overflow-hidden rounded-full"
+                style="background-color: #edebe9;"
+              >
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  style={`width: ${Math.min(100, Math.max(item.porcentaje, item.conteo > 0 ? 4 : 0))}%; background-color: #f09830;`}
+                ></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-outline/60 flex items-center justify-between text-xs text-on-surface-muted">
+        <span>Total menciones analizadas:</span>
+        <span class="font-bold text-on-surface">
+          {temas.reduce((sum, t) => sum + t.conteo, 0)}
+        </span>
+      </div>
+    </div>
+  )}
+</div>

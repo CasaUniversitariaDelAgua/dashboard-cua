@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { CorteCaja, Transaccion, SouvenirVendido, VentaPorDia } from './types';
+import type { CorteCaja, Transaccion, SouvenirVendido, VentaPorDia, Encuesta, ResumenEncuestas, SatisfaccionNivel } from './types';
 
 // Obtiene los componentes de la fecha ajustados a la zona horaria de America/Mexico_City
 export function getMexicoCityDateParts(date = new Date()) {
@@ -415,6 +415,149 @@ export async function getTotalVisitantes(opts?: { mes?: string; año?: string })
     desglose: Object.entries(tiposEntrada)
       .map(([nombre, cantidad]) => ({ nombre, cantidad }))
       .sort((a, b) => b.cantidad - a.cantidad),
+  };
+}
+
+export async function getEncuestas(opts?: {
+  desde?: string;
+  hasta?: string;
+  satisfaccion?: string;
+  busqueda?: string;
+}): Promise<Encuesta[]> {
+  let query = supabase
+    .from('encuestas')
+    .select('*')
+    .order('fecha_hora', { ascending: false });
+
+  if (opts?.desde) {
+    const [y, m, d] = opts.desde.split('-').map(Number);
+    const inicio = new Date(Date.UTC(y, m - 1, d, 6, 0, 0)).toISOString();
+    query = query.gte('fecha_hora', inicio);
+  }
+  if (opts?.hasta) {
+    const [y, m, d] = opts.hasta.split('-').map(Number);
+    const fin = new Date(Date.UTC(y, m - 1, d + 1, 5, 59, 59, 999)).toISOString();
+    query = query.lte('fecha_hora', fin);
+  }
+  if (opts?.satisfaccion && opts.satisfaccion !== 'todas') {
+    query = query.eq('satisfaccion', opts.satisfaccion);
+  }
+
+  let result = await fetchAllPages<Encuesta>(query);
+
+  if (opts?.busqueda) {
+    const q = opts.busqueda.toLowerCase();
+    result = result.filter(
+      (e) =>
+        e.comentarios?.toLowerCase().includes(q) ||
+        String(e.id).includes(q) ||
+        String(e.recomendacion).includes(q)
+    );
+  }
+
+  return result;
+}
+
+export function getResumenEncuestas(encuestas: Encuesta[]): ResumenEncuestas {
+  const total = encuestas.length;
+
+  const satisfaccionBreakdown: Record<SatisfaccionNivel, number> = {
+    'very-good': 0,
+    'good': 0,
+    'neutral': 0,
+    'bad': 0,
+    'very-bad': 0,
+  };
+
+  if (total === 0) {
+    return {
+      total: 0,
+      npsScore: 0,
+      promotores: 0,
+      pasivos: 0,
+      detractores: 0,
+      pctPromotores: 0,
+      pctPasivos: 0,
+      pctDetractores: 0,
+      pctPositiva: 0,
+      promedioCalificacion: 0,
+      satisfaccionBreakdown,
+      distribucionCalificaciones: Array(11).fill(0),
+      temasFrecuentes: [],
+    };
+  }
+
+  let promotores = 0;
+  let pasivos = 0;
+  let detractores = 0;
+  let sumaCalificacion = 0;
+  const distribucionCalificaciones = Array(11).fill(0);
+
+  for (const e of encuestas) {
+    const sat = e.satisfaccion as SatisfaccionNivel;
+    if (satisfaccionBreakdown[sat] !== undefined) {
+      satisfaccionBreakdown[sat]++;
+    }
+
+    const rec = Math.max(0, Math.min(10, Math.round(Number(e.recomendacion ?? 0))));
+    distribucionCalificaciones[rec]++;
+    sumaCalificacion += rec;
+
+    if (rec >= 9) {
+      promotores++;
+    } else if (rec >= 7) {
+      pasivos++;
+    } else {
+      detractores++;
+    }
+  }
+
+  const npsScore = Math.round(((promotores - detractores) / total) * 100);
+  const pctPromotores = Math.round((promotores / total) * 100);
+  const pctPasivos = Math.round((pasivos / total) * 100);
+  const pctDetractores = Math.round((detractores / total) * 100);
+
+  const positivas = satisfaccionBreakdown['very-good'] + satisfaccionBreakdown['good'];
+  const pctPositiva = Math.round((positivas / total) * 100);
+
+  const promedioCalificacion = Number((sumaCalificacion / total).toFixed(1));
+
+  const temasBase = [
+    { tema: 'Explicación de los guías', regex: /guías|guias|explicaci[oó]n/i },
+    { tema: 'Las maquetas', regex: /maquetas?/i },
+    { tema: 'Cuidado del agua', regex: /cuidado del agua|agua/i },
+    { tema: 'Instalaciones limpias', regex: /instalaci[oó]n|limpia|limpieza/i },
+    { tema: 'Video educativo', regex: /video|pel[ií]cula/i },
+    { tema: 'Aire acondicionado', regex: /aire|clima/i },
+  ];
+
+  const temasFrecuentes = temasBase
+    .map((t) => {
+      const conteo = encuestas.filter(
+        (e) => e.comentarios && t.regex.test(e.comentarios)
+      ).length;
+      return {
+        tema: t.tema,
+        conteo,
+        porcentaje: total > 0 ? Math.round((conteo / total) * 100) : 0,
+      };
+    })
+    .sort((a, b) => b.conteo - a.conteo);
+
+  return {
+    total,
+    npsScore,
+    promotores,
+    pasivos,
+    detractores,
+    pctPromotores,
+    pctPasivos,
+    pctDetractores,
+    pctPositiva,
+    promedioCalificacion,
+    satisfaccionBreakdown,
+    distribucionCalificaciones,
+    temasFrecuentes,
   };
 }
 

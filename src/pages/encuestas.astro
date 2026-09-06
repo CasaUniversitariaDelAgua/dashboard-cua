@@ -1,0 +1,653 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MetricCard from "../components/MetricCard.astro";
+import FilterBar from "../components/FilterBar.astro";
+import SurveySatisfactionChart from "../components/SurveySatisfactionChart.astro";
+import SurveyNpsChart from "../components/SurveyNpsChart.astro";
+import SurveyTopicsCard from "../components/SurveyTopicsCard.astro";
+import { getEncuestas, getResumenEncuestas } from "../lib/queries";
+import { getFilters } from "../lib/filters";
+
+const filters = getFilters(Astro.url);
+const satisfaccion = filters.satisfaccion || "todas";
+
+const encuestas = await getEncuestas({
+  desde: filters.desde,
+  hasta: filters.hasta,
+  satisfaccion: satisfaccion !== "todas" ? satisfaccion : undefined,
+  busqueda: filters.busqueda,
+});
+
+const resumen = getResumenEncuestas(encuestas);
+
+function formatSurveyDate(isoString: string): string {
+  try {
+    const d = new Date(isoString);
+    return new Intl.DateTimeFormat("es-MX", {
+      timeZone: "America/Mexico_City",
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(d);
+  } catch {
+    return isoString;
+  }
+}
+
+function getSatisfactionMeta(sat: string) {
+  switch (sat) {
+    case "very-good":
+      return {
+        label: "Sumamente feliz",
+        emoji: "🤩",
+        style:
+          "background-color: rgba(0, 168, 152, 0.12); color: #008f82; border: 1px solid rgba(0, 168, 152, 0.25);",
+      };
+    case "good":
+      return {
+        label: "Satisfecho",
+        emoji: "😊",
+        style:
+          "background-color: rgba(0, 168, 152, 0.10); color: #008f82; border: 1px solid rgba(0, 168, 152, 0.20);",
+      };
+    case "neutral":
+      return {
+        label: "Neutral",
+        emoji: "😐",
+        style:
+          "background-color: rgba(237, 178, 0, 0.12); color: #b48500; border: 1px solid rgba(237, 178, 0, 0.25);",
+      };
+    case "bad":
+      return {
+        label: "Insatisfecho",
+        emoji: "😕",
+        style:
+          "background-color: rgba(240, 152, 48, 0.12); color: #d9811e; border: 1px solid rgba(240, 152, 48, 0.25);",
+      };
+    case "very-bad":
+      return {
+        label: "Muy insatisfecho",
+        emoji: "😫",
+        style:
+          "background-color: rgba(251, 44, 54, 0.12); color: #e0242d; border: 1px solid rgba(251, 44, 54, 0.25);",
+      };
+    default:
+      return {
+        label: sat,
+        emoji: "💬",
+        style:
+          "background-color: rgba(0, 0, 0, 0.05); color: #797067; border: 1px solid #e3e0dd;",
+      };
+  }
+}
+
+function getNpsBadge(score: number) {
+  if (score >= 9) {
+    return {
+      label: "Recomienda",
+      style:
+        "background-color: rgba(0, 168, 152, 0.12); color: #008f82; border: 1px solid rgba(0, 168, 152, 0.25);",
+    };
+  }
+  if (score >= 7) {
+    return {
+      label: "Neutral",
+      style:
+        "background-color: rgba(237, 178, 0, 0.12); color: #b48500; border: 1px solid rgba(237, 178, 0, 0.25);",
+    };
+  }
+  return {
+    label: "No recomienda",
+    style:
+      "background-color: rgba(251, 44, 54, 0.12); color: #e0242d; border: 1px solid rgba(251, 44, 54, 0.25);",
+  };
+}
+---
+
+<Layout
+  title="Encuestas de Satisfacción"
+  currentPath="/encuestas"
+  user={Astro.locals.user}
+>
+  <div class="space-y-6">
+    <!-- Encabezado con título y acciones rápidas -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+    >
+      <div>
+        <h1 class="text-2xl font-bold text-on-surface flex items-center gap-2">
+          <span>Encuestas de Satisfacción</span>
+        </h1>
+        <p class="text-sm text-on-surface-muted">
+          Resultados de percepción, métricas NPS y comentarios de los visitantes
+          del CUA
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <button
+          id="export-excel-btn"
+          type="button"
+          class="inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold shadow-sm transition-all hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
+          style="background-color: #107c41; color: #ffffff;"
+          disabled={encuestas.length === 0}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            style="color: #ffffff;"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
+          </svg>
+          <span style="color: #ffffff;">Descargar Excel</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <form method="GET" action="/encuestas">
+      <FilterBar
+        basePath="/encuestas"
+        filters={[
+          { label: "Desde", name: "desde", type: "date", value: filters.desde },
+          { label: "Hasta", name: "hasta", type: "date", value: filters.hasta },
+          {
+            label: "Satisfacción",
+            name: "satisfaccion",
+            type: "select",
+            value: satisfaccion,
+            options: [
+              { value: "todas", label: "Todas las calificaciones" },
+              { value: "very-good", label: "🤩 Sumamente feliz" },
+              { value: "good", label: "😊 Satisfecho" },
+              { value: "neutral", label: "😐 Neutral" },
+              { value: "bad", label: "😕 Insatisfecho" },
+              { value: "very-bad", label: "😫 Muy insatisfecho" },
+            ],
+          },
+          {
+            label: "Buscar en comentarios",
+            name: "busqueda",
+            type: "text",
+            value: filters.busqueda,
+            placeholder: "Guías, maquetas, clima, etc...",
+          },
+        ]}
+      />
+    </form>
+
+    <!-- Tarjetas de Métricas Clave (KPIs) -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <MetricCard
+        title="Total Respuestas"
+        value={resumen.total}
+        icon="clipboard-check"
+        subtitle="Encuestas recolectadas"
+      />
+      <MetricCard
+        title="Índice de Recomendación"
+        value={`${resumen.npsScore > 0 ? "+" : ""}${resumen.npsScore}`}
+        icon="star"
+        subtitle={`Recomiendan: ${resumen.pctPromotores}% | No recomiendan: ${resumen.pctDetractores}%`}
+      />
+      <MetricCard
+        title="Satisfacción Positiva"
+        value={`${resumen.pctPositiva}%`}
+        icon="users"
+        subtitle="Calificaciones 'Satisfecho' o 'Feliz'"
+      />
+      <MetricCard
+        title="Recomendación Promedio"
+        value={`${resumen.promedioCalificacion} / 10`}
+        icon="chart"
+        subtitle="Escala del 0 al 10"
+      />
+    </div>
+
+    <!-- Gráficos y Aspectos Valorados -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="lg:col-span-1">
+        <SurveySatisfactionChart
+          data={resumen.satisfaccionBreakdown}
+          total={resumen.total}
+          title="Nivel de Satisfacción"
+        />
+      </div>
+      <div class="lg:col-span-1">
+        <SurveyNpsChart
+          npsScore={resumen.npsScore}
+          promotores={resumen.promotores}
+          pasivos={resumen.pasivos}
+          detractores={resumen.detractores}
+          pctPromotores={resumen.pctPromotores}
+          pctPasivos={resumen.pctPasivos}
+          pctDetractores={resumen.pctDetractores}
+          total={resumen.total}
+          distribucionCalificaciones={resumen.distribucionCalificaciones}
+          title="Índice de Recomendación (NPS)"
+        />
+      </div>
+      <div class="lg:col-span-1">
+        <SurveyTopicsCard
+          temas={resumen.temasFrecuentes}
+          total={resumen.total}
+          title="Temas Más Mencionados"
+        />
+      </div>
+    </div>
+
+    <!-- Tabla Detallada de Respuestas -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-on-surface">
+            Respuestas Individuales
+          </h2>
+          <p class="text-xs text-on-surface-muted">
+            {encuestas.length}
+            {
+              encuestas.length === 1
+                ? "registro encontrado"
+                : "registros encontrados"
+            }
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="overflow-hidden rounded-xl border border-outline bg-surface-elevated shadow-sm flex flex-col"
+      >
+        <div
+          class="overflow-x-auto overflow-y-auto custom-survey-scrollbar"
+          style="max-height: 480px;"
+        >
+          <table class="w-full text-sm">
+            <thead
+              class="sticky top-0 z-10 border-b border-outline bg-surface-elevated shadow-xs"
+            >
+              <tr class="h-12 bg-primary/5">
+                <th
+                  class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong whitespace-nowrap"
+                >
+                  Fecha y Hora
+                </th>
+                <th
+                  class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong whitespace-nowrap"
+                >
+                  Satisfacción
+                </th>
+                <th
+                  class="px-4 text-center text-xs font-semibold uppercase tracking-wider text-primary-strong whitespace-nowrap"
+                >
+                  Recomendación
+                </th>
+                <th
+                  class="px-4 text-left text-xs font-semibold uppercase tracking-wider text-primary-strong"
+                >
+                  Comentarios y Aspectos Valorados
+                </th>
+                <th
+                  class="px-4 text-right text-xs font-semibold uppercase tracking-wider text-primary-strong whitespace-nowrap"
+                >
+                  ID
+                </th>
+              </tr>
+            </thead>
+            <tbody id="survey-table-body" class="divide-y divide-outline/50">
+              {
+                encuestas.length === 0 ? (
+                  <tr>
+                    <td
+                      colspan="5"
+                      class="px-4 py-12 text-center text-on-surface-muted"
+                    >
+                      <div class="flex flex-col items-center justify-center space-y-2">
+                        <span class="text-3xl">🔍</span>
+                        <p class="text-sm font-semibold">
+                          No se encontraron encuestas con los filtros aplicados
+                        </p>
+                        <a
+                          href="/encuestas"
+                          class="text-xs text-primary font-semibold hover:underline"
+                        >
+                          Restablecer filtros
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  encuestas.map((encuesta, index) => {
+                    const satMeta = getSatisfactionMeta(encuesta.satisfaccion);
+                    const npsMeta = getNpsBadge(encuesta.recomendacion);
+                    return (
+                      <tr
+                        class="survey-row transition-colors hover:bg-surface-soft/60"
+                        data-index={index}
+                        style={index >= 10 ? "display: none;" : ""}
+                      >
+                        <td class="px-4 py-3 font-medium text-on-surface whitespace-nowrap">
+                          {formatSurveyDate(encuesta.fecha_hora)}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                          <span
+                            class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+                            style={satMeta.style}
+                          >
+                            <span>{satMeta.emoji}</span>
+                            <span>{satMeta.label}</span>
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 text-center whitespace-nowrap">
+                          <div class="inline-flex items-center gap-1.5">
+                            <span class="text-sm font-black text-on-surface">
+                              {encuesta.recomendacion}
+                            </span>
+                            <span class="text-xs text-on-surface-muted">
+                              /10
+                            </span>
+                            <span
+                              class="ml-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
+                              style={npsMeta.style}
+                            >
+                              {npsMeta.label}
+                            </span>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-on-surface">
+                          {encuesta.comentarios ? (
+                            <div class="max-w-xl text-xs leading-relaxed">
+                              <p class="text-on-surface font-medium italic">
+                                "{encuesta.comentarios}"
+                              </p>
+                            </div>
+                          ) : (
+                            <span class="text-xs text-on-surface-muted/60 italic">
+                              Sin comentarios
+                            </span>
+                          )}
+                        </td>
+                        <td class="px-4 py-3 text-right text-xs text-on-surface-muted font-mono whitespace-nowrap">
+                          #{encuesta.id}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )
+              }
+            </tbody>
+          </table>
+        </div>
+
+        {
+          encuestas.length > 0 && (
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-outline bg-surface-soft/30 text-xs text-on-surface-muted">
+              <div class="flex items-center gap-2">
+                <span>Mostrar:</span>
+                <select
+                  id="page-size-select"
+                  class="rounded border border-outline bg-surface-elevated px-2 py-1 text-xs text-on-surface focus:border-primary focus:outline-none"
+                >
+                  <option value="10" selected>
+                    10 por página
+                  </option>
+                  <option value="25">25 por página</option>
+                  <option value="50">50 por página</option>
+                  <option value="100">100 por página</option>
+                </select>
+                <span
+                  id="pagination-info"
+                  class="ml-2 font-medium text-on-surface"
+                >
+                  Mostrando 1 - {Math.min(10, encuestas.length)} de{" "}
+                  {encuestas.length}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <button
+                  id="prev-page-btn"
+                  type="button"
+                  class="px-3 py-1.5 rounded-lg border border-outline bg-surface-elevated font-semibold text-on-surface hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  disabled
+                >
+                  ‹ Anterior
+                </button>
+                <span
+                  id="page-number-display"
+                  class="px-2 font-bold text-on-surface"
+                >
+                  Página 1 de {Math.max(1, Math.ceil(encuestas.length / 10))}
+                </span>
+                <button
+                  id="next-page-btn"
+                  type="button"
+                  class="px-3 py-1.5 rounded-lg border border-outline bg-surface-elevated font-semibold text-on-surface hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  disabled={encuestas.length <= 10}
+                >
+                  Siguiente ›
+                </button>
+              </div>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Raw data container for client-side Excel export -->
+  <script
+    id="encuestas-export-data"
+    type="application/json"
+    set:html={JSON.stringify(encuestas)}
+  />
+</Layout>
+
+<script>
+  import * as XLSX from "xlsx";
+
+  const btn = document.getElementById("export-excel-btn");
+  const dataEl = document.getElementById("encuestas-export-data");
+
+  if (btn && dataEl) {
+    btn.addEventListener("click", () => {
+      try {
+        const raw = dataEl.textContent;
+        if (!raw) return;
+        const items = JSON.parse(raw);
+        if (!items || items.length === 0) return;
+
+        const satisfactionLabels: Record<string, string> = {
+          "very-good": "Sumamente feliz",
+          good: "Satisfecho",
+          neutral: "Neutral",
+          bad: "Insatisfecho",
+          "very-bad": "Muy insatisfecho",
+        };
+
+        const exportData = items.map((e: any) => {
+          const rec = Number(e.recomendacion ?? 0);
+          let nivelRecomendacion = "No recomienda";
+          if (rec >= 9) nivelRecomendacion = "Recomienda";
+          else if (rec >= 7) nivelRecomendacion = "Neutral";
+
+          const fechaObj = new Date(e.fecha_hora);
+          const fechaFormateada = isNaN(fechaObj.getTime())
+            ? e.fecha_hora
+            : new Intl.DateTimeFormat("es-MX", {
+                timeZone: "America/Mexico_City",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              }).format(fechaObj);
+
+          return {
+            ID: e.id,
+            "Fecha y Hora (CDMX)": fechaFormateada,
+            "Nivel Satisfacción":
+              satisfactionLabels[e.satisfaccion] || e.satisfaccion,
+            "Código Satisfacción": e.satisfaccion,
+            "Recomendación (0-10)": rec,
+            "Nivel Recomendación": nivelRecomendacion,
+            "Comentarios del Visitante": e.comentarios || "Sin comentarios",
+          };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        // Set column widths
+        worksheet["!cols"] = [
+          { wch: 8 }, // ID
+          { wch: 22 }, // Fecha y Hora
+          { wch: 20 }, // Nivel Satisfaccion
+          { wch: 18 }, // Codigo Satisfaccion
+          { wch: 22 }, // Recomendacion
+          { wch: 20 }, // Nivel Recomendacion
+          { wch: 50 }, // Comentarios
+        ];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Encuestas CUA");
+
+        const today = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(workbook, `encuestas_cua_${today}.xlsx`);
+      } catch (err) {
+        console.error("Error al exportar a Excel:", err);
+        alert("Ocurrió un error al exportar los datos.");
+      }
+    });
+  }
+
+  // Paginación client-side de la tabla
+  const rows = Array.from(
+    document.querySelectorAll<HTMLTableRowElement>(".survey-row"),
+  );
+  const pageSizeSelect = document.getElementById(
+    "page-size-select",
+  ) as HTMLSelectElement | null;
+  const prevBtn = document.getElementById(
+    "prev-page-btn",
+  ) as HTMLButtonElement | null;
+  const nextBtn = document.getElementById(
+    "next-page-btn",
+  ) as HTMLButtonElement | null;
+  const paginationInfo = document.getElementById("pagination-info");
+  const pageNumberDisplay = document.getElementById("page-number-display");
+  const scrollContainer = document.querySelector(
+    ".custom-survey-scrollbar",
+  ) as HTMLElement | null;
+
+  let currentPage = 1;
+  let pageSize = 10;
+  const totalRows = rows.length;
+
+  function updatePagination() {
+    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, totalRows);
+
+    rows.forEach((row, idx) => {
+      if (idx >= startIdx && idx < endIdx) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+
+    if (paginationInfo) {
+      if (totalRows === 0) {
+        paginationInfo.textContent = "0 respuestas";
+      } else {
+        paginationInfo.textContent = `Mostrando ${startIdx + 1} - ${endIdx} de ${totalRows}`;
+      }
+    }
+
+    if (pageNumberDisplay) {
+      pageNumberDisplay.textContent = `Página ${currentPage} de ${totalPages}`;
+    }
+
+    if (prevBtn) {
+      prevBtn.disabled = currentPage <= 1;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    }
+  }
+
+  if (pageSizeSelect) {
+    pageSizeSelect.addEventListener("change", (e) => {
+      pageSize = parseInt((e.target as HTMLSelectElement).value, 10) || 10;
+      currentPage = 1;
+      updatePagination();
+    });
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+      }
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(totalRows / pageSize);
+      if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+      }
+    });
+  }
+
+  if (rows.length > 0) {
+    updatePagination();
+  }
+</script>
+
+<style>
+  .custom-survey-scrollbar {
+    max-height: 480px !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #f09830 #edebe9 !important;
+  }
+  .custom-survey-scrollbar::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+    display: block !important;
+  }
+  .custom-survey-scrollbar::-webkit-scrollbar-track {
+    background: #edebe9 !important;
+    border-radius: 4px !important;
+  }
+  .custom-survey-scrollbar::-webkit-scrollbar-thumb {
+    background: #f09830 !important;
+    border-radius: 4px !important;
+  }
+  .custom-survey-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #d9811e !important;
+  }
+</style>

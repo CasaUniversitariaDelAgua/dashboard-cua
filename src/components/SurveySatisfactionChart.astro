@@ -1,0 +1,146 @@
+---
+import type { SatisfaccionNivel } from "../lib/types";
+
+export interface Props {
+  data: Record<SatisfaccionNivel, number>;
+  total: number;
+  title?: string;
+}
+
+const { data, total = 0, title = "Nivel de Satisfacción" } = Astro.props;
+
+const levels: Array<{ key: SatisfaccionNivel; label: string; emoji: string; color: string }> = [
+  { key: "very-good", label: "Sumamente feliz", emoji: "🤩", color: "#00a898" },
+  { key: "good", label: "Satisfecho", emoji: "😊", color: "#10b981" },
+  { key: "neutral", label: "Neutral", emoji: "😐", color: "#edb200" },
+  { key: "bad", label: "Insatisfecho", emoji: "😕", color: "#f09830" },
+  { key: "very-bad", label: "Muy insatisfecho", emoji: "😫", color: "#fb2c36" },
+];
+
+const chartData = levels.map((lvl) => ({
+  key: lvl.key,
+  label: `${lvl.emoji} ${lvl.label}`,
+  count: data[lvl.key] || 0,
+  color: lvl.color,
+  emoji: lvl.emoji,
+  name: lvl.label,
+}));
+
+const hasData = total > 0 && chartData.some((d) => d.count > 0);
+const chartId = "satisfaction-chart-" + Math.random().toString(36).slice(2, 8);
+---
+
+<div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm flex flex-col h-full">
+  {title && (
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold text-on-surface">{title}</h3>
+      <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary-strong">
+        {total} {total === 1 ? "opinión" : "opiniones"}
+      </span>
+    </div>
+  )}
+
+  {!hasData ? (
+    <div class="flex flex-1 items-center justify-center py-12 text-center">
+      <div class="space-y-2">
+        <span class="text-4xl">📊</span>
+        <p class="text-sm font-semibold text-on-surface-muted">No hay datos de satisfacción</p>
+        <p class="text-xs text-on-surface-muted/75">Aún no se han registrado respuestas en este período</p>
+      </div>
+    </div>
+  ) : (
+    <div class="flex flex-1 flex-col justify-between">
+      <div class="relative h-56 w-full mb-4">
+        <canvas
+          id={chartId}
+          data-chart-data={JSON.stringify(chartData)}
+          class="survey-satisfaction-chart h-full w-full"
+        ></canvas>
+      </div>
+
+      <!-- Leyenda y desglose detallado -->
+      <div class="grid grid-cols-1 gap-2 pt-2 border-t border-outline/50">
+        {chartData.map((d) => {
+          const pct = total > 0 ? ((d.count / total) * 100).toFixed(1) : "0.0";
+          return (
+            <div class="flex items-center justify-between text-xs py-1 px-1.5 rounded-lg hover:bg-surface-soft/60 transition-colors">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="text-base shrink-0">{d.emoji}</span>
+                <span class="font-medium text-on-surface truncate">{d.name}</span>
+              </div>
+              <div class="flex items-center gap-2 ml-2 shrink-0 font-semibold">
+                <span class="text-on-surface">{d.count}</span>
+                <span
+                  class="text-[11px] font-bold px-1.5 py-0.5 rounded"
+                  style={`background-color: ${d.color}1a; color: ${d.color};`}
+                >
+                  {pct}%
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  import { Chart, registerables } from "chart.js";
+  Chart.register(...registerables);
+
+  const canvasElements = document.querySelectorAll(
+    ".survey-satisfaction-chart"
+  ) as NodeListOf<HTMLCanvasElement>;
+
+  canvasElements.forEach((canvas) => {
+    const rawData = canvas.dataset.chartData;
+    if (!rawData) return;
+
+    try {
+      const items = JSON.parse(rawData);
+      new Chart(canvas, {
+        type: "doughnut",
+        data: {
+          labels: items.map((i: any) => i.label),
+          datasets: [
+            {
+              data: items.map((i: any) => i.count),
+              backgroundColor: items.map((i: any) => i.color),
+              borderWidth: 2,
+              borderColor: "#ffffff",
+              hoverOffset: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "68%",
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              backgroundColor: "rgba(0, 0, 0, 0.85)",
+              titleFont: { size: 12, weight: "bold" },
+              bodyFont: { size: 12 },
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: {
+                label: function (context) {
+                  const total = context.dataset.data.reduce((a: any, b: any) => a + b, 0) as number;
+                  const val = context.raw as number;
+                  const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                  return ` ${val} encuestas (${pct}%)`;
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (e) {
+      console.error("Error al renderizar el gráfico de satisfacción:", e);
+    }
+  });
+</script>

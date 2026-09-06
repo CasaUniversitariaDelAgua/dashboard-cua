@@ -1,0 +1,230 @@
+---
+export interface Props {
+  npsScore: number;
+  promotores: number;
+  pasivos: number;
+  detractores: number;
+  pctPromotores: number;
+  pctPasivos: number;
+  pctDetractores: number;
+  total: number;
+  distribucionCalificaciones?: number[];
+  title?: string;
+}
+
+const {
+  npsScore = 0,
+  promotores = 0,
+  pasivos = 0,
+  detractores = 0,
+  pctPromotores = 0,
+  pctPasivos = 0,
+  pctDetractores = 0,
+  total = 0,
+  distribucionCalificaciones = Array(11).fill(0),
+  title = "Net Promoter Score (NPS)",
+} = Astro.props;
+
+let npsCategory = "Excelente";
+let npsBadgeCls = "bg-success/10 text-success border-success/30";
+if (npsScore < 0) {
+  npsCategory = "Crítico";
+  npsBadgeCls = "bg-danger/10 text-danger border-danger/30";
+} else if (npsScore < 50) {
+  npsCategory = "Favorable";
+  npsBadgeCls = "bg-amber-500/10 text-amber-600 border-amber-500/30";
+}
+
+const chartId = "nps-distribution-chart-" + Math.random().toString(36).slice(2, 8);
+const hasData = total > 0;
+---
+
+<div class="rounded-xl border border-outline bg-surface-elevated p-6 shadow-sm flex flex-col h-full">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-bold text-on-surface">{title}</h3>
+    {hasData && (
+      <span class={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${npsBadgeCls}`}>
+        {npsCategory}
+      </span>
+    )}
+  </div>
+
+  {!hasData ? (
+    <div class="flex flex-1 items-center justify-center py-12 text-center">
+      <div class="space-y-2">
+        <span class="text-4xl">⭐</span>
+        <p class="text-sm font-semibold text-on-surface-muted">No hay datos de recomendación</p>
+        <p class="text-xs text-on-surface-muted/75">Se requieren respuestas para calcular el NPS</p>
+      </div>
+    </div>
+  ) : (
+    <div class="flex flex-1 flex-col justify-between space-y-5">
+      <!-- NPS Hero Card -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-surface-soft/60 border border-outline/40">
+        <div class="flex items-baseline gap-3">
+          <span class="text-4xl sm:text-5xl font-extrabold tracking-tight text-on-surface">
+            {npsScore > 0 ? `+${npsScore}` : npsScore}
+          </span>
+          <div class="text-left">
+            <span class="text-xs font-bold uppercase tracking-wider text-on-surface-muted block">
+              Puntos NPS
+            </span>
+            <span class="text-[11px] text-on-surface-muted/80">
+              Escala de -100 a +100
+            </span>
+          </div>
+        </div>
+
+        <div class="text-right text-xs text-on-surface-muted font-medium bg-surface-elevated px-3 py-1.5 rounded-lg border border-outline/40">
+          <span class="text-success font-bold">{pctPromotores}% Recomiendan</span>
+          <span class="mx-1.5 text-outline">−</span>
+          <span class="text-danger font-bold">{pctDetractores}% No recomiendan</span>
+        </div>
+      </div>
+
+      <!-- Segmented Bar Visual -->
+      <div class="space-y-1.5">
+        <div class="flex h-3.5 w-full overflow-hidden rounded-full bg-outline/20">
+          {pctPromotores > 0 && (
+            <div
+              style={`width: ${pctPromotores}%; background-color: #00a898;`}
+              class="transition-all duration-500 hover:opacity-90"
+              title={`Recomiendan: ${promotores} (${pctPromotores}%)`}
+            ></div>
+          )}
+          {pctPasivos > 0 && (
+            <div
+              style={`width: ${pctPasivos}%; background-color: #edb200;`}
+              class="transition-all duration-500 hover:opacity-90"
+              title={`Neutrales: ${pasivos} (${pctPasivos}%)`}
+            ></div>
+          )}
+          {pctDetractores > 0 && (
+            <div
+              style={`width: ${pctDetractores}%; background-color: #fb2c36;`}
+              class="transition-all duration-500 hover:opacity-90"
+              title={`No recomiendan: ${detractores} (${pctDetractores}%)`}
+            ></div>
+          )}
+        </div>
+        <div class="flex justify-between text-[11px] font-semibold text-on-surface-muted px-0.5">
+          <span>0 (Nada probable)</span>
+          <span>10 (Muy probable)</span>
+        </div>
+      </div>
+
+      <!-- Mini KPI Summary -->
+      <div class="grid grid-cols-3 gap-2 text-center pt-1">
+        <div
+          class="p-2.5 rounded-xl text-center"
+          style="border: 1px solid rgba(0, 168, 152, 0.25); background-color: rgba(0, 168, 152, 0.08);"
+        >
+          <p class="text-[11px] font-bold" style="color: #008f82;">Recomiendan (9-10)</p>
+          <p class="text-lg font-black" style="color: #008f82;">{promotores}</p>
+          <p class="text-[10px] font-semibold" style="color: rgba(0, 143, 130, 0.85);">{pctPromotores}% del total</p>
+        </div>
+        <div
+          class="p-2.5 rounded-xl text-center"
+          style="border: 1px solid rgba(237, 178, 0, 0.25); background-color: rgba(237, 178, 0, 0.08);"
+        >
+          <p class="text-[11px] font-bold" style="color: #b48500;">Neutrales (7-8)</p>
+          <p class="text-lg font-black" style="color: #b48500;">{pasivos}</p>
+          <p class="text-[10px] font-semibold" style="color: rgba(180, 133, 0, 0.85);">{pctPasivos}% del total</p>
+        </div>
+        <div
+          class="p-2.5 rounded-xl text-center"
+          style="border: 1px solid rgba(251, 44, 54, 0.25); background-color: rgba(251, 44, 54, 0.08);"
+        >
+          <p class="text-[11px] font-bold" style="color: #e0242d;">No recomiendan (0-6)</p>
+          <p class="text-lg font-black" style="color: #e0242d;">{detractores}</p>
+          <p class="text-[10px] font-semibold" style="color: rgba(224, 36, 45, 0.85);">{pctDetractores}% del total</p>
+        </div>
+      </div>
+
+      <!-- Calificaciones 0 a 10 Histogram -->
+      <div class="pt-2 border-t border-outline/50">
+        <p class="text-xs font-bold text-on-surface-muted mb-2">Distribución de Respuestas (0 al 10):</p>
+        <div class="relative h-28 w-full">
+          <canvas
+            id={chartId}
+            data-chart-data={JSON.stringify(distribucionCalificaciones)}
+            class="nps-histogram-chart h-full w-full"
+          ></canvas>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  import { Chart, registerables } from "chart.js";
+  Chart.register(...registerables);
+
+  const canvasElements = document.querySelectorAll(
+    ".nps-histogram-chart"
+  ) as NodeListOf<HTMLCanvasElement>;
+
+  canvasElements.forEach((canvas) => {
+    const rawData = canvas.dataset.chartData;
+    if (!rawData) return;
+
+    try {
+      const counts: number[] = JSON.parse(rawData);
+      const labels = Array.from({ length: 11 }, (_, i) => String(i));
+      const backgroundColors = labels.map((_, i) => {
+        if (i >= 9) return "#10b981"; // Recomienda
+        if (i >= 7) return "#f59e0b"; // Neutral
+        return "#f43f5e"; // No recomienda
+      });
+
+      new Chart(canvas, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              data: counts,
+              backgroundColor: backgroundColors,
+              borderRadius: 4,
+              borderSkipped: false,
+              barPercentage: 0.8,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items) => `Calificación: ${items[0].label} / 10`,
+                label: (context) => {
+                  const val = context.raw as number;
+                  const idx = context.dataIndex;
+                  let grp = "No recomienda";
+                  if (idx >= 9) grp = "Recomienda";
+                  else if (idx >= 7) grp = "Neutral";
+                  return ` ${val} respuestas (${grp})`;
+                },
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0, font: { size: 10 } },
+              grid: { color: "#f0ece7" },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10, weight: "bold" } },
+            },
+          },
+        },
+      });
+    } catch (e) {
+      console.error("Error al renderizar el histograma NPS:", e);
+    }
+  });
+</script>
