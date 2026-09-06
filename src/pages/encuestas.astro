@@ -188,7 +188,7 @@ function getNpsBadge(score: number) {
     </form>
 
     <!-- Tarjetas de Métricas Clave (KPIs) -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <MetricCard
         title="Total Respuestas"
         value={resumen.total}
@@ -216,15 +216,15 @@ function getNpsBadge(score: number) {
     </div>
 
     <!-- Gráficos y Aspectos Valorados -->
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div class="lg:col-span-1">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="flex flex-col">
         <SurveySatisfactionChart
           data={resumen.satisfaccionBreakdown}
           total={resumen.total}
           title="Nivel de Satisfacción"
         />
       </div>
-      <div class="lg:col-span-1">
+      <div class="flex flex-col">
         <SurveyNpsChart
           npsScore={resumen.npsScore}
           promotores={resumen.promotores}
@@ -238,7 +238,7 @@ function getNpsBadge(score: number) {
           title="Índice de Recomendación (NPS)"
         />
       </div>
-      <div class="lg:col-span-1">
+      <div class="lg:col-span-2">
         <SurveyTopicsCard
           temas={resumen.temasFrecuentes}
           total={resumen.total}

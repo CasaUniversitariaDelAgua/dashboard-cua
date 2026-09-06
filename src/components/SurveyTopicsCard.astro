@@ -39,20 +39,20 @@ const iconsMap: Record<string, string> = {
     </div>
   ) : (
     <div class="flex flex-col justify-between flex-1">
-      <div class="space-y-2.5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
         {temas.map((item) => {
           const emoji = iconsMap[item.tema] || "✨";
           return (
-            <div class="space-y-1.5 p-1 rounded-lg hover:bg-surface-soft/40 transition-colors">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-semibold text-on-surface flex items-center gap-1.5">
-                  <span class="text-sm">{emoji}</span>
-                  <span>{item.tema}</span>
+            <div class="space-y-1.5 p-1.5 rounded-lg hover:bg-surface-soft/40 transition-colors">
+              <div class="flex items-center justify-between text-xs gap-2">
+                <span class="font-semibold text-on-surface flex items-center gap-1.5 min-w-0 truncate">
+                  <span class="text-sm shrink-0">{emoji}</span>
+                  <span class="truncate">{item.tema}</span>
                 </span>
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-on-surface">{item.conteo} menciones</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="font-bold text-on-surface whitespace-nowrap">{item.conteo} menciones</span>
                   <span
-                    class="text-[11px] font-bold px-1.5 py-0.5 rounded"
+                    class="text-[11px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap"
                     style="background-color: rgba(240, 152, 48, 0.15); color: #d9811e;"
                   >
                     {item.porcentaje}%
